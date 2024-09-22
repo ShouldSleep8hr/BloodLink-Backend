@@ -86,7 +86,7 @@ class Post(models.Model):
     def __str__(self):
         return self.recipient_name
 
-class announcement(models.Model):
+class announcements(models.Model):
     title = models.CharField(max_length=200, null=True, blank=True)
     content = models.TextField(max_length=200, null=True, blank=True)
     reference = models.CharField(max_length=200, null=True, blank=True)

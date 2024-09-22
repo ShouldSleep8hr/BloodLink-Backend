@@ -2,6 +2,12 @@ from django.db import models
 from accounts.models import Users
 from django.utils import timezone
 
+facility_type_choice = (
+    ('ร','โรงพยาบาล'),
+    ('ศ','ศูนย์กาชาด'),
+    ('ค','หน่วยรับบริจาคเคลื่อนที่'),
+)
+
 class Region(models.Model):
     name = models.CharField(max_length=50, null=True, blank=False)
 
@@ -39,7 +45,8 @@ class DonationLocation(models.Model):
     latitude = models.DecimalField(max_digits=15, decimal_places=7, null=True, blank=True)
     longtitude = models.DecimalField(max_digits=15, decimal_places=7, null=True, blank=True)
     contact = models.CharField(max_length=200, null=True, blank=True) #still thinking number or email
-    facility_type = models.CharField(max_length=50, null=True, blank=True) #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
+    # facility_type = models.CharField(max_length=50, null=True, blank=True) #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
+    facility_type = models.CharField(max_length=50, null=True, blank=True, choices=facility_type_choice) #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
     available_date = models.DateTimeField(null=True, blank=True) #สำหรับหน่วยรับบริจาคเคลื่อนที่
     opening_time = models.TimeField(null=True, blank=True)
     closing_time = models.TimeField(null=True, blank=True)
@@ -78,3 +85,13 @@ class Post(models.Model):
 
     def __str__(self):
         return self.recipient_name
+
+class announcement(models.Model):
+    title = models.CharField(max_length=200, null=True, blank=True)
+    content = models.TextField(max_length=200, null=True, blank=True)
+    reference = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.title
+
+    

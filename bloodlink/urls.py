@@ -29,10 +29,11 @@ from django.urls import include, path
 from rest_framework import routers
 
 from accounts.views import UserViewSet
-from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet
+from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, announcement_viewset
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
+router.register(r'webapp/announcement',announcement_viewset)
 router.register(r'webapp/donation-location', DonationLocationViewSet)
 router.register(r'webapp/subdistrict', SubDistrictViewSet)
 router.register(r'webapp/district', DistrictViewSet)

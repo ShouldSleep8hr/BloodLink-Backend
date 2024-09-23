@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from webapp.models import Post, DonationLocation, SubDistrict, Province, Region
+from webapp.models import Post, DonationLocation, SubDistrict, Province, Region, announcements
+
+class announcements_serializer(serializers.ModelSerializer):
+    class Meta:
+        model = announcements
+        fields = ['title','content','reference']
 
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:

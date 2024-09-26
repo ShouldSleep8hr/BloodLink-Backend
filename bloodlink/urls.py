@@ -28,21 +28,28 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 
-from accounts.views import UserViewSet
-from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet
+from accounts.views import UserViewSet, UserRegistrationView, csrf_token_view
+from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet
+
+from linemessagingapi.views import Webhook
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
+
 router.register(r'webapp/donation-location', DonationLocationViewSet)
 router.register(r'webapp/subdistrict', SubDistrictViewSet)
 router.register(r'webapp/district', DistrictViewSet)
 router.register(r'webapp/province', ProvinceViewSet)
 router.register(r'webapp/region', RegionViewSet)
+router.register(r'webapp/post', PostViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api-auth/register/', UserRegistrationView.as_view(), name='register'),
+    path('line/', Webhook.as_view(), name='line_webhook'),
+    path('api-auth/csrf-token/', csrf_token_view, name='csrf-token'),
 ]

@@ -37,7 +37,7 @@ class DonationLocation(models.Model):
     subdistrict = models.ForeignKey(SubDistrict, related_name='donation_locations', on_delete=models.CASCADE, null=True, blank=True)
     
     latitude = models.DecimalField(max_digits=20, decimal_places=15, null=True, blank=True)
-    longtitude = models.DecimalField(max_digits=20, decimal_places=15, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=20, decimal_places=15, null=True, blank=True)
     contact = models.CharField(max_length=200, null=True, blank=True) #still thinking number or email
     facility_type = models.CharField(max_length=50, null=True, blank=True) #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
     available_date = models.DateTimeField(null=True, blank=True) #สำหรับหน่วยรับบริจาคเคลื่อนที่

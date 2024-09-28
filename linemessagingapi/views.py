@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from linebot import LineBotApi
-from linebot.models import TextSendMessage, ButtonsTemplate, TemplateSendMessage, URITemplateAction
+from linebot.models import TextSendMessage, ButtonsTemplate, TemplateSendMessage, URITemplateAction, FlexSendMessage
 from linemessagingapi.models import LineChannelContact, LineChannel, WebhookRequest
 from accounts.models import Users
 from webapp.models import DonationLocation, Post
@@ -11,6 +11,9 @@ import requests
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from linemessagingapi.services.nearest_location import calculate_haversine_distance
+
 
 class Webhook(APIView):
     def __init__(self, *args, **kwargs):
@@ -67,6 +70,36 @@ class Webhook(APIView):
             #     else:
             #         # User not found
             #         self.send_reply_message(reply_token, "ไม่พบข้อมูลผู้ใช้")
+        elif message_type == 'location':
+            # Get user's latitude and longitude
+            user_lat = event['message']['latitude']
+            user_lon = event['message']['longitude']
+
+            # Find donation locations within 10km of the user's location
+            nearby_locations = []
+            donation_locations = DonationLocation.objects.all()
+
+            for location in donation_locations:
+                distance = calculate_haversine_distance(user_lat, user_lon, location.latitude, location.longitude)
+                # If the location is within 10km, add it to the nearby locations list
+                if distance <= 10:
+                    bubble_template = self.create_location_bubble(location.name, distance, location.address, location.googlemap)
+                    nearby_locations.append(bubble_template)
+
+            # If there are nearby locations, send them in a single Flex message
+            if nearby_locations:
+                flex_message = FlexSendMessage(
+                    alt_text="บริจาคโลหิตใกล้ฉัน",
+                    contents={
+                        "type": "carousel",
+                        "contents": nearby_locations  # Send all bubbles as a carousel
+                    }
+                )
+                self.line_bot_api.reply_message(reply_token, flex_message)
+            else:
+                # If no nearby locations are found, send a text message
+                message = TextSendMessage(text="ไม่พบสถานที่บริจาคโลหิตใกล้คุณภายใน 10 กิโลเมตร")
+                self.line_bot_api.reply_message(reply_token, message)
 
     def handle_follow_event(self, event):
         user_id = event['source']['userId']
@@ -123,6 +156,66 @@ class Webhook(APIView):
             template=buttons_template
         )
         self.line_bot_api.reply_message(reply_token, template_message)
+
+    def create_location_bubble(self, loc_name, loc_distance, loc_address, map_url):
+        bubble_template = {
+            "type": "bubble",
+            "direction": "ltr",
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "lg",
+                        "margin": "none",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": loc_name,
+                                "weight": "bold",
+                                "align": "start",
+                                "wrap": True,
+                                "contents": []
+                            },
+                            {
+                                "type": "text",
+                                "text": f"อยู่ห่างจากคุณ {loc_distance} กม.",
+                                "margin": "none",
+                                "wrap": True,
+                                "contents": []
+                            },
+                            {
+                                "type": "text",
+                                "text": f"🚩 {loc_address}",
+                                "align": "start",
+                                "margin": "none",
+                                "wrap": True,
+                                "contents": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "horizontal",
+                "contents": [
+                    {
+                        "type": "button",
+                        "action": {
+                            "type": "uri",
+                            "label": "ดูบนแผนที่",
+                            "uri": map_url
+                        },
+                        "color": "#B6ABA0",
+                        "style": "primary"
+                    }
+                ]
+            }
+        }
+        return bubble_template
     
     def store_webhook_data(self, request):
         # Extract method, path, headers, and body
@@ -161,12 +254,65 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
         # Notify each user via LINE
         for user in users_to_notify:
             if user.line_user_id:  # Ensure the user has linked their LINE account
-                message_text = (
-                    f"มีการโพสต์ขอรับบริจาคโลหิตในพื้นที่ที่คุณเลือก:\n"
-                    f"ผู้รับ: {instance.recipient_name}\n"
-                    f"ที่อยู่: {instance.location.name}\nกรุณาตรวจสอบข้อมูลในระบบ"
-                )
-                message = TextSendMessage(text=message_text)
+                flex_message = {
+                    "type": "bubble",
+                    "size": "mega",
+                    "direction": "ltr",
+                    "body": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "none",
+                        "margin": "none",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": "🆘 ด่วน! ขอรับบริจาคโลหิตฉุกเฉิน 🆘",
+                                "weight": "regular",
+                                "align": "start",
+                                "margin": "none",
+                                "contents": []
+                            },
+                            {
+                                "type": "text",
+                                "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}",
+                                "align": "start",
+                                "gravity": "center",
+                                "margin": "xl",
+                                "contents": []
+                            },
+                            {
+                                "type": "text",
+                                "text": f"สถานที่: {instance.location.name}",
+                                "contents": []
+                            },
+                            {
+                                "type": "text",
+                                "text": "ขอบคุณที่ร่วมช่วยเหลือ!",
+                                "margin": "xxl",
+                                "contents": []
+                            }
+                        ]
+                    },
+                    "footer": {
+                        "type": "box",
+                        "layout": "horizontal",
+                        "spacing": "none",
+                        "contents": [
+                            {
+                                "type": "button",
+                                "action": {
+                                    "type": "uri",
+                                    "label": "ดูรายละเอียดโพสต์",
+                                    "uri": f"https://yourwebsite.com/post/{instance.id}"
+                                },
+                                "color": "#DC0404",
+                                "style": "primary"
+                            }
+                        ]
+                    }
+                }
+                # message = TextSendMessage(text=message_text)
+                message = FlexSendMessage(alt_text="ขอรับบริจาคโลหิต", contents=flex_message)
                 webhook.line_bot_api.push_message(user.line_user_id, message)
 
 

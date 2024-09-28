@@ -29,13 +29,14 @@ from django.urls import include, path
 from rest_framework import routers
 
 from accounts.views import UserViewSet, UserRegistrationView, csrf_token_view
-from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet
+from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, announcement_viewset
 
 from linemessagingapi.views import Webhook
 
+
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
-
+router.register(r'webapp/announcement',announcement_viewset)
 router.register(r'webapp/donation-location', DonationLocationViewSet)
 router.register(r'webapp/subdistrict', SubDistrictViewSet)
 router.register(r'webapp/district', DistrictViewSet)

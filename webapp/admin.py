@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from webapp.models import Region, Province, District, SubDistrict, DonationLocation, DonationHistory, Post, PreferredArea
+from webapp.models import Region, Province, District, SubDistrict, DonationLocation, DonationHistory, Post, PreferredArea, announcements
 
 admin.site.register(Region)
 admin.site.register(Province)
@@ -10,3 +10,4 @@ admin.site.register(DonationLocation)
 admin.site.register(DonationHistory)
 admin.site.register(Post)
 admin.site.register(PreferredArea)
+admin.site.register(announcements)

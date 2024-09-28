@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post
 from rest_framework import permissions, viewsets
 
@@ -8,6 +9,16 @@ from rest_framework.pagination import PageNumberPagination
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'paginator'  # Users can set ?paginator=2 to get 2 results per page
     max_page_size = 100  # Optionally limit the maximum number of results per page
+=======
+from webapp.models import DonationLocation, SubDistrict, District, Province, Region, announcements
+from rest_framework import permissions, viewsets
+
+from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, announcements_serializer
+
+class announcement_viewset(viewsets.ModelViewSet):
+    queryset = announcements.objects.all()
+    serializer_class = announcements_serializer
+>>>>>>> origin/main
 
 class DonationLocationViewSet(viewsets.ModelViewSet):
     """

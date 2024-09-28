@@ -25,7 +25,32 @@ SECRET_KEY = 'django-insecure-_3)d@fg!_b#+nnu-4x&pa^ty0ew$*kz6nzewrz218hgame8gv-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+CSRF_COOKIE_SAMESITE = None  # Only for development
+
+ALLOWED_HOSTS = ['secretly-coherent-lacewing.ngrok-free.app', '127.0.0.1', 'localhost']
+
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:5173',  # Vue.js app
+    'http://localhost:5173',  # Your Vue.js app's URL
+    'https://secretly-coherent-lacewing.ngrok-free.app',       # Ngrok or any other domain used for tunneling
+]
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:5173', #front end site
+    'http://localhost:5173', 
+    'https://secretly-coherent-lacewing.ngrok-free.app',  # Add the ngrok URL here
+]
+CORS_ORIGIN_WHITELIST = [
+    'http://127.0.0.1:5173',
+]
+CORS_ALLOWED_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+]
+CORS_ALLOW_HEADERS = "*"
 
 AUTH_USER_MODEL = 'accounts.Users'
 
@@ -39,13 +64,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'accounts',
     'webapp',
+    'linemessagingapi',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Must be before CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -53,11 +81,21 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/api-auth/login/'
+
 ROOT_URLCONF = 'bloodlink.urls'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'PAGE_SIZE': 10
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'rest_framework.authentication.SessionAuthentication',
+    #     'rest_framework.authentication.BasicAuthentication',
+    # ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
 }
 
 TEMPLATES = [

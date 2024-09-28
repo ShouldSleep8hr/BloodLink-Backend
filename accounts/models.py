@@ -10,10 +10,8 @@ class Users(AbstractUser):
     birthdate = models.DateField(null=True, blank=False)
     phone_number = models.CharField(max_length=10, null=True, blank=False)
     
-    # ForeignKey to LineChannels
-    # line_channel_id = models.ForeignKey('LineChannels', on_delete=models.SET_NULL, null=True, blank=True)
+    line_user_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
     
-    preferred_area = models.CharField(max_length=255, null=True, blank=True) #อำเภอ, จังหวัด
     personal_info_consent = models.BooleanField(default=False)
     blood_type = models.CharField(max_length=10, null=True, blank=True) #example: AB|Rh+
     latest_donation_date = models.DateField(null=True, blank=True)

@@ -36,7 +36,7 @@ class DonationLocationSerializer(serializers.ModelSerializer):
     province = serializers.CharField(source='subdistrict.district.province.name', read_only=True)
     class Meta:
         model = DonationLocation
-        fields = ['id', 'name', 'keyword', 'address', 'contact', 'subdistrict', 'district', 'province', 'latitude', 'longtitude', 'googlemap']
+        fields = ['id', 'name', 'keyword', 'address', 'contact', 'subdistrict', 'district', 'province', 'latitude', 'longitude', 'googlemap']
 
 # class DonationHistorySerializer(serializers.ModelSerializer):
 #     subdistrict = serializers.CharField(source='subdistrict.name', read_only=True)

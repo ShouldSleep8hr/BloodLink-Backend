@@ -30,6 +30,7 @@ from rest_framework import routers
 
 from accounts.views import UserViewSet, UserRegistrationView, csrf_token_view
 from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, announcement_viewset
+from webapp.views import scrape_blood_donation_posts_view
 
 from linemessagingapi.views import Webhook
 
@@ -53,4 +54,5 @@ urlpatterns = [
     path('api-auth/register/', UserRegistrationView.as_view(), name='register'),
     path('line/', Webhook.as_view(), name='line_webhook'),
     path('api-auth/csrf-token/', csrf_token_view, name='csrf-token'),
+    path('webapp/scrape-blood-donation-posts/', scrape_blood_donation_posts_view, name='scrape_blood_donation_posts'),
 ]

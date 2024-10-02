@@ -75,7 +75,7 @@ class Post(models.Model):
     location = models.ForeignKey(DonationLocation, related_name='post', on_delete=models.SET_NULL, null=True, blank=False)
 
     due_date = models.DateTimeField("due date", null=True, blank=True)
-    detail = models.TextField(max_length=200, null=True, blank=True)
+    detail = models.TextField(max_length=5000, null=True, blank=True)
     contact = models.CharField(max_length=200, null=True, blank=True) #might add User.contact, still thinking number or email
     number_interest = models.IntegerField(null=True, blank=True)
     number_donor = models.IntegerField(null=True, blank=True)
@@ -83,8 +83,8 @@ class Post(models.Model):
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)
 
-    def __str__(self):
-        return self.recipient_name
+    # def __str__(self):
+    #     return self.recipient_name
     
 class PreferredArea(models.Model):
     user    = models.ForeignKey(Users, related_name='preferred_areas', on_delete=models.CASCADE, null=True, blank=False)

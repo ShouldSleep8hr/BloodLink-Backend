@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from webapp.models import Post, DonationLocation, SubDistrict, Province, Region, announcements
 
+
 class announcements_serializer(serializers.ModelSerializer):
     class Meta:
         model = announcements

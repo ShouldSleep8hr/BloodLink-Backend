@@ -5,6 +5,16 @@ from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer
 
 from rest_framework.pagination import PageNumberPagination
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.http import JsonResponse
+from django.shortcuts import render
+from .fb_scraper import scrape_blood_donation_posts
+
+def scrape_blood_donation_posts_view(request):
+    scrape_blood_donation_posts()  # เรียกฟังก์ชัน scraping
+    return JsonResponse({"message": "Scraping completed, check terminal for results"}, status=200)
+
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'paginator'  # Users can set ?paginator=2 to get 2 results per page
     max_page_size = 100  # Optionally limit the maximum number of results per page

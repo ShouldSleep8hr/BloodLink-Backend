@@ -14,25 +14,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# from django.contrib import admin
-# from django.urls import path
-
-# from accounts import views
-
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-#     path('/', admin.site.urls),
-# ]
 
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 
-from accounts.views import UserViewSet, UserRegistrationView, csrf_token_view
+from accounts.views import UserViewSet
 from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, announcement_viewset
 
 from linemessagingapi.views import Webhook
 
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -49,8 +41,17 @@ router.register(r'webapp/post', PostViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('api-auth/register/', UserRegistrationView.as_view(), name='register'),
+
+    path('auth/', include('accounts.urls')),
+
+    path('', include('djoser.urls')), # Djoser handles login/logout
+    # path('', include('djoser.urls.authtoken')), # Token-based auth
+    path('', include('djoser.urls.jwt')), # Token-based auth
+    # path('token/obtain/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Obtain JWT
+    # path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Refresh JWT
+
+    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # path('register/', UserRegistrationView.as_view(), name='register'),
     path('line/', Webhook.as_view(), name='line_webhook'),
-    path('api-auth/csrf-token/', csrf_token_view, name='csrf-token'),
+    # path('line/<str:token>/', Webhook.as_view(), name='line_token'),
 ]

@@ -4,18 +4,24 @@ from accounts.models import Users
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'birthdate']
+        fields = ['id', 'email', 'password', 'first_name', 'last_name', 'birthdate']
         extra_kwargs = {
-            'password': {'write_only': True}  # Password should not be exposed in serialized output
+            'password': {'write_only': True},  # Hide password in the serialized output
+            'email': {'required': True}        # Ensure email is required as it's the username field
         }
 
     def create(self, validated_data):
-        # Create user and hash password
-        user = Users.objects.create_user(**validated_data)
+        # Create user and hash the password
+        password = validated_data.pop('password', None)
+        user = Users(**validated_data)
+        if password:
+            user.set_password(password)
+
+        user.save()
         return user
 
     def update(self, instance, validated_data):
-        # Update user and handle password hashing
+        # Handle user update, including password hash
         password = validated_data.pop('password', None)
         instance = super().update(instance, validated_data)
         if password:

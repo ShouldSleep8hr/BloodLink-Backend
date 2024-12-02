@@ -1,9 +1,10 @@
 from rest_framework.views import APIView
+from rest_framework import permissions, viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from linebot import LineBotApi
 from linebot.models import TextSendMessage, ButtonsTemplate, TemplateSendMessage, URITemplateAction, FlexSendMessage
-from linemessagingapi.models import LineChannelContact, LineChannel, WebhookRequest
+from linemessagingapi.models import LineChannelContact, LineChannel, WebhookRequest, NonceMapping
 from accounts.models import Users
 from webapp.models import DonationLocation, Post
 from django.db.models import Q
@@ -14,8 +15,15 @@ from django.dispatch import receiver
 
 from linemessagingapi.services.nearest_location import calculate_haversine_distance
 
+# from rest_framework.authentication import TokenAuthentication
+
+# from django.shortcuts import redirect
+# from django.http import HttpResponse
 
 class Webhook(APIView):
+    # authentication_classes = [TokenAuthentication]  # Use token authentication
+    permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Initialize LineBot instance
@@ -35,6 +43,8 @@ class Webhook(APIView):
                 self.handle_message_event(event)
             elif event['type'] == 'follow':
                 self.handle_follow_event(event)
+            elif event['type'] == 'accountLink':  # Handle account linking event
+                self.handle_account_link_event(event)
 
         return Response(status=status.HTTP_200_OK)
     
@@ -47,29 +57,7 @@ class Webhook(APIView):
             message_text = event['message']['text']
             if message_text == 'บริจาคโลหิตใกล้ฉัน':
                 self.send_location_request(reply_token)
-            # if message_text == 'บริจาคโลหิตใกล้ฉัน':
-            #     # Find the user based on the LINE user ID
-            #     user = Users.objects.filter(line_user_id=user_id).first()
-            #     if user:
-            #         # Fetch all subdistricts, districts, and provinces for the user's preferred areas
-            #         preferred_subdistricts = user.preferred_areas.values_list('subdistricts', flat=True)
-            #         preferred_districts = user.preferred_areas.values_list('districts', flat=True)
-            #         preferred_provinces = user.preferred_areas.values_list('provinces', flat=True)
-            #         # Filter donation locations based on preferred areas
-            #         donation_locations = DonationLocation.objects.filter(
-            #                                 Q(subdistrict__in=preferred_subdistricts) |
-            #                                 Q(subdistrict__district__in=preferred_districts) |
-            #                                 Q(subdistrict__district__province__in=preferred_provinces)
-            #                             ).distinct()
 
-            #         if donation_locations.exists():
-            #             location_messages = "\n".join([loc.name for loc in donation_locations])
-            #             self.send_reply_message(reply_token, f"บริจาคโลหิตใกล้คุณ:\n{location_messages}")
-            #         else:
-            #             self.send_reply_message(reply_token, "ไม่พบสถานที่บริจาคโลหิตใกล้คุณ")
-            #     else:
-            #         # User not found
-            #         self.send_reply_message(reply_token, "ไม่พบข้อมูลผู้ใช้")
         elif message_type == 'location':
             # Get user's latitude and longitude
             user_lat = event['message']['latitude']
@@ -80,11 +68,12 @@ class Webhook(APIView):
             donation_locations = DonationLocation.objects.all()
 
             for location in donation_locations:
-                distance = calculate_haversine_distance(user_lat, user_lon, location.latitude, location.longitude)
-                # If the location is within 10km, add it to the nearby locations list
-                if distance <= 10:
-                    bubble_template = self.create_location_bubble(location.name, distance, location.address, location.googlemap)
-                    nearby_locations.append(bubble_template)
+                if location.latitude != None and location.longitude != None:
+                    distance = calculate_haversine_distance(user_lat, user_lon, location.latitude, location.longitude)
+                    # If the location is within 10km, add it to the nearby locations list
+                    if distance <= 10:
+                        bubble_template = self.create_location_bubble(location.name, distance, location.address, location.googlemap)
+                        nearby_locations.append(bubble_template)
 
             # If there are nearby locations, send them in a single Flex message
             if nearby_locations:
@@ -103,6 +92,7 @@ class Webhook(APIView):
 
     def handle_follow_event(self, event):
         user_id = event['source']['userId']
+        
         display_name = self.get_line_display_name(user_id)
         channel = self.line_bot
         
@@ -112,13 +102,66 @@ class Webhook(APIView):
             defaults={'display_name': display_name}
         )
 
-    # def send_reply_message(self, reply_token, message_text):
-    #     message = TextSendMessage(text=message_text)
-    #     self.line_bot_api.reply_message(reply_token, message)
+        # 1. Get the link token for this user
+        link_token = self.get_link_token(user_id)
 
-    # def send_push_message(self, user_id, message_text):
-    #     message = TextSendMessage(text=message_text)
-    #     self.line_bot_api.push_message(user_id, message)
+        # 2. Send the linking URL to the user
+        if link_token:
+            linking_url = f"http://localhost:5173/link?linkToken={link_token}"
+            buttons_template = ButtonsTemplate(
+                title='ลิ้งแอคเคาท์',
+                text='กดเพื่อลิ้งแอคเคาท์',
+                actions=[
+                    URITemplateAction(
+                        label='ลิ้งแอคเคาท์',
+                        uri=linking_url
+                    )
+                ]
+            )
+            template_message = TemplateSendMessage(
+                alt_text='ลิ้งแอคเคาท์',
+                template=buttons_template
+            )
+            self.line_bot_api.push_message(user_id, template_message)
+
+    def get_link_token(self, user_id):
+        # Request the link token from the LINE platform
+        response = requests.post(
+            f"https://api.line.me/v2/bot/user/{user_id}/linkToken",
+            headers={'Authorization': f'Bearer {self.line_bot.channel_access_token}'}
+        )
+        if response.status_code == 200:
+            return response.json().get('linkToken')
+        return None
+    
+    def handle_account_link_event(self, event):
+        # Extract the necessary details from the event
+        line_user_id = event['source']['userId']
+        nonce = event['link']['nonce']
+        
+        # Find the user in your system based on the nonce
+        try:
+            # Assuming you have a model that stores the nonce and user ID
+            nonce_mapping = NonceMapping.objects.get(nonce=nonce)
+            user = nonce_mapping.user  # Get the associated user
+
+            # Save the LINE user ID to the user's profile
+            user.line_user_id = line_user_id
+            user.save()
+
+            line_channel_contact = LineChannelContact.objects.get(contact_id=line_user_id)
+            line_channel_contact.user = user
+            line_channel_contact.save()
+            
+            # Clean up the nonce mapping (optional)
+            nonce_mapping.delete()
+
+            print(f"Linked LINE account {line_user_id} with user {user.email}")
+
+        except NonceMapping.DoesNotExist:
+            print(f"Nonce {nonce} not found, unable to link account.")
+
+
 
     def get_line_display_name(self, user_id):
         """
@@ -283,7 +326,8 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                             {
                                 "type": "text",
                                 "text": f"สถานที่: {instance.location.name}",
-                                "contents": []
+                                "contents": [],
+                                "wrap": True
                             },
                             {
                                 "type": "text",

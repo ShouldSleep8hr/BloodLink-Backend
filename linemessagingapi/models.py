@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import Users
+from django.utils import timezone
 
 class WebhookRequest(models.Model):
     method = models.CharField(max_length=10)  # Stores the request method (e.g., POST, GET)
@@ -35,3 +36,16 @@ class LineChannelContact(models.Model):
 
     def __str__(self):
         return f"{self.display_name} {self.contact_id}"
+    
+# class LineUserTokenMapping(models.Model):
+#     token = models.CharField(max_length=64, unique=True)
+#     line_user_id = models.CharField(max_length=255, blank=True, null=True)  # Populated after follow event
+#     created_on = models.DateTimeField(default=timezone.now)
+
+class NonceMapping(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, blank=True, null=True,)
+    nonce = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Nonce for {self.user.email}"

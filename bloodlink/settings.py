@@ -14,6 +14,8 @@ from pathlib import Path
 
 from datetime import timedelta
 
+from google.oauth2 import service_account
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -90,7 +92,9 @@ INSTALLED_APPS = [
     'accounts',
     'webapp',
     'linemessagingapi',
+    'storages',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -222,3 +226,12 @@ SIMPLE_JWT = {
 #     'PASSWORD_RESET_CONFIRM_URL': 'auth/reset-password/?uid={uid}&token={token}',
 #     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True
 # }
+
+
+# Google Cloud Storage Configuration
+# DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = 'donation-history-images'  # Replace with your GCS bucket name
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    'D:/Y4/BloodLink2/blooddonation-backend/bloodlinkadmin.json'  # Path to your GCS service account key
+)
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'  # Media URL for serving uploaded files

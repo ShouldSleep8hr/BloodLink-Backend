@@ -1,8 +1,11 @@
-from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, announcements
+from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, announcements, DonationHistory
 from rest_framework import permissions, viewsets, generics
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
-from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, announcements_serializer
+from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, announcements_serializer, DonationHistorySerializer
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
@@ -66,9 +69,6 @@ class RegionViewSet(viewsets.ModelViewSet):
     queryset = Region.objects.all()
     serializer_class = RegionSerializer
 
-    authentication_classes = [TokenAuthentication]  # Use token authentication
-    # permission_classes = [permissions.IsAuthenticated]
-
 class PostViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
@@ -83,3 +83,34 @@ class PostViewSet(viewsets.ModelViewSet):
 
 #     def perform_create(self, serializer):
 #         serializer.save()  # This will call the create method in the serializer
+
+class DonationHistoryViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]  # Use token authentication
+    # permission_classes = [permissions.IsAuthenticated]  # Ensure the user is authenticated
+    permission_classes = [permissions.AllowAny] 
+
+    queryset = DonationHistory.objects.all()
+    serializer_class = DonationHistorySerializer
+    pagination_class = CustomPagination  # Set the custom pagination
+
+    # def get_queryset(self):
+    #     # Return only donation histories for the authenticated user
+    #     return DonationHistory.objects.filter(user=self.request.user)
+
+    # def perform_create(self, serializer):
+    #     # Assign the logged-in user to the donation history record
+    #     serializer.save(user=self.request.user)
+
+    # def post(self, request, *args, **kwargs):
+    #     user = request.user  # Get the logged-in user
+    #     data = request.data.copy()
+    #     data['user'] = user.id  # Add the user ID to the data
+
+    #     serializer = DonationHistorySerializer(data=data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response({
+    #             'message': 'Donation history created successfully',
+    #             'donation_history': serializer.data
+    #         }, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

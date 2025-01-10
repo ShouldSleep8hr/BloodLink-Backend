@@ -6,6 +6,7 @@ from linebot import LineBotApi
 from linebot.models import TextSendMessage, ButtonsTemplate, TemplateSendMessage, URITemplateAction, FlexSendMessage
 from linemessagingapi.models import LineChannelContact, LineChannel, WebhookRequest, NonceMapping
 from accounts.models import Users
+from accounts.serializers import UserSerializer
 from webapp.models import DonationLocation, Post
 from django.db.models import Q
 import requests
@@ -14,6 +15,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from linemessagingapi.services.nearest_location import calculate_haversine_distance
+
+from jwt import decode, ExpiredSignatureError, InvalidTokenError
 
 # from rest_framework.authentication import TokenAuthentication
 
@@ -43,10 +46,63 @@ class Webhook(APIView):
                 self.handle_message_event(event)
             elif event['type'] == 'follow':
                 self.handle_follow_event(event)
-            elif event['type'] == 'accountLink':  # Handle account linking event
-                self.handle_account_link_event(event)
+            # elif event['type'] == 'accountLink':  # Handle account linking event
+            #     self.handle_account_link_event(event)
 
         return Response(status=status.HTTP_200_OK)
+    
+    def get(self, request, *args, **kwargs):
+        code = request.query_params.get('code')
+        state = request.query_params.get('state')
+
+        if not code or not state:
+            return Response({'error': 'Authorization code or state is missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Exchange the authorization code for an access token
+        token_url = "https://api.line.me/oauth2/v2.1/token"
+        data = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": "https://secretly-coherent-lacewing.ngrok-free.app/line",
+            "client_id": "2006630011",
+            "client_secret": "2b7ad148dcbb206e8a9aeb281d36022b",
+        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        try:
+            token_response = requests.post(token_url, data=data, headers=headers)
+            token_response.raise_for_status()
+            token_data = token_response.json()
+        except requests.RequestException as e:
+            return Response({'error': 'Failed to exchange code for token', 'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Decode the ID token to get LINE user info
+        id_token = token_data.get('id_token')
+        try:
+            decoded_token = decode(id_token, options={"verify_signature": False})  # Add verification in production
+            line_user_id = decoded_token.get('sub')
+            email = decoded_token.get("email")
+        except (ExpiredSignatureError, InvalidTokenError) as e:
+            return Response({'error': 'Invalid or expired ID token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not line_user_id:
+            return Response({'error': 'LINE user ID not found in token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the LINE user ID exists in the database
+        try:
+            user = Users.objects.get(line_user_id=line_user_id)
+            # Log the user in (use your authentication mechanism here)
+            return Response({'message': 'User logged in', 'user_id': user.id, 'user_email': email}, status=status.HTTP_200_OK)
+        except Users.DoesNotExist:
+            # If user does not exist, redirect to registration
+            serializer = UserSerializer(data={
+                'line_user_id': line_user_id,
+                'email': email
+            })
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response({'message': 'User registered successfully', 'user_email': user.email}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def handle_message_event(self, event):
         user_id = event['source']['userId']
@@ -360,4 +416,66 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                 webhook.line_bot_api.push_message(user.line_user_id, message)
 
 
+@receiver(post_save, sender=Post)
+def notify_user_on_post_creation(sender, instance, created, **kwargs):
+    if created :
 
+        # Initialize Webhook once to reuse it in the loop
+        webhook = Webhook()
+
+        if instance.user.line_user_id:  # Ensure the user has linked their LINE account
+            flex_message = {
+                "type": "bubble",
+                "size": "mega",
+                "direction": "ltr",
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "none",
+                    "margin": "none",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "สร้างโพสต์ขอรับบริจาคโลหิตฉุกเฉินสำเร็จ",
+                            "weight": "regular",
+                            "align": "start",
+                            "margin": "none",
+                            "contents": []
+                        },
+                        {
+                            "type": "text",
+                            "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}",
+                            "align": "start",
+                            "gravity": "center",
+                            "margin": "xl",
+                            "contents": []
+                        },
+                        {
+                            "type": "text",
+                            "text": f"สถานที่: {instance.location.name}",
+                            "contents": [],
+                            "wrap": True
+                        }
+                    ]
+                },
+                "footer": {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "spacing": "none",
+                    "contents": [
+                        {
+                            "type": "button",
+                            "action": {
+                                "type": "uri",
+                                "label": "ดูรายละเอียดโพสต์",
+                                "uri": f"https://yourwebsite.com/post/{instance.id}"
+                            },
+                            "color": "#DC0404",
+                            "style": "primary"
+                        }
+                    ]
+                }
+            }
+            # message = TextSendMessage(text=message_text)
+            message = FlexSendMessage(alt_text="ขอรับบริจาคโลหิต", contents=flex_message)
+            webhook.line_bot_api.push_message(instance.user.line_user_id, message)

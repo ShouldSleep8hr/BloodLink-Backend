@@ -38,7 +38,7 @@ class CustomLoginView(TokenObtainPairView):
     # authentication_classes = [TokenAuthentication]  # Use token authentication
 
     def post(self, request, *args, **kwargs):
-        print(request.build_absolute_uri())
+        # print(request.build_absolute_uri())
         # Call the parent post method to get the token
         response = super().post(request, *args, **kwargs)
 
@@ -52,23 +52,48 @@ class CustomLoginView(TokenObtainPairView):
                 return Response({'error': 'Multiple users found with this email'}, status=status.HTTP_400_BAD_REQUEST)
 
             # Prepare the link token from the request (if provided)
-            link_token = request.query_params.get('linkToken')
-            if link_token:
-                if link_token.endswith('/'):
-                    link_token = link_token.rstrip('/')
+            # link_token = request.query_params.get('linkToken')
+            # if link_token:
+            #     if link_token.endswith('/'):
+            #         link_token = link_token.rstrip('/')
 
-                nonce = secrets.token_urlsafe(16)  # Generate a secure nonce
-                NonceMapping.objects.create(user=user, nonce=nonce)
+            #     nonce = secrets.token_urlsafe(16)  # Generate a secure nonce
+            #     NonceMapping.objects.create(user=user, nonce=nonce)
 
-                # Redirect to the LINE account linking URL
-                linking_url = (
-                    f"https://access.line.me/dialog/bot/accountLink?linkToken={link_token}&nonce={nonce}"
-                )
-                # Return the linking URL to the frontend
-                return Response({
-                    'message': 'Redirect to this URL to link your LINE account.',
-                    'linking_url': linking_url
-                }, status=status.HTTP_200_OK)
+            #     # Redirect to the LINE account linking URL
+            #     linking_url = (
+            #         f"https://access.line.me/dialog/bot/accountLink?linkToken={link_token}&nonce={nonce}"
+            #     )
+            #     # Return the linking URL to the frontend
+            #     return Response({
+            #         'message': 'Redirect to this URL to link your LINE account.',
+            #         'linking_url': linking_url
+            #     }, status=status.HTTP_200_OK)
+
+            # Generate a secure state and nonce
+            state = secrets.token_urlsafe(16)
+            nonce = secrets.token_urlsafe(16)
+
+            # Store the state and nonce mapping in the database (Optional)
+            NonceMapping.objects.create(user=user, nonce=nonce)
+
+            # LINE Login URL construction
+            line_login_url = (
+                f"https://access.line.me/oauth2/v2.1/authorize"
+                f"?response_type=code"
+                f"&client_id=2006630011"  # LINE Channel ID
+                f"&redirect_uri=https://secretly-coherent-lacewing.ngrok-free.app/line"  # Callback URL
+                f"&state={state}"  # CSRF prevention
+                f"&bot_prompt=aggressive" # normal, aggressive	
+                f"&scope=profile%20openid%20email"  # Required scopes
+                f"&nonce={nonce}"  # To prevent replay attacks
+            )
+
+            # Return the LINE Login URL to the frontend
+            return Response({
+                'message': 'Redirect to this URL to log in with LINE.',
+                'line_login_url': line_login_url
+            }, status=status.HTTP_200_OK)            
 
         # If no link token, return the usual login response with JWT token
         return response

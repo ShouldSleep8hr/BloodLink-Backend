@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+from datetime import timedelta
+
+from google.oauth2 import service_account
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,32 +29,49 @@ SECRET_KEY = 'django-insecure-_3)d@fg!_b#+nnu-4x&pa^ty0ew$*kz6nzewrz218hgame8gv-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-CSRF_COOKIE_SAMESITE = None  # Only for development
-
 ALLOWED_HOSTS = ['secretly-coherent-lacewing.ngrok-free.app', '127.0.0.1', 'localhost']
 
 CORS_ALLOWED_ORIGINS = [
-    'http://127.0.0.1:5173',  # Vue.js app
-    'http://localhost:5173',  # Your Vue.js app's URL
-    'https://secretly-coherent-lacewing.ngrok-free.app',       # Ngrok or any other domain used for tunneling
+    'http://127.0.0.1:5173', # Vue.js app
+    'http://localhost:5173', # Vue.js app
+    # 'http://127.0.0.1:8000', # backend local host
+    # 'http://localhost:8000', # backend local host
+    'https://secretly-coherent-lacewing.ngrok-free.app', # Ngrok or any other domain used for tunneling
 ]
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1:5173', #front end site
-    'http://localhost:5173', 
-    'https://secretly-coherent-lacewing.ngrok-free.app',  # Add the ngrok URL here
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+
+CORS_ALLOW_HEADERS = [
+    'Accept',
+    'Authorization',
+    'Content-Type',
+    'X-CSRFToken',
+    'X-Requested-With',
+    'ngrok-skip-browser-warning',
 ]
-CORS_ORIGIN_WHITELIST = [
-    'http://127.0.0.1:5173',
-]
-CORS_ALLOWED_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    'OPTIONS',
-]
-CORS_ALLOW_HEADERS = "*"
+
+# CSRF_TRUSTED_ORIGINS = [
+#     'http://127.0.0.1:5173', #front end site
+#     'http://localhost:5173', 
+#     'https://secretly-coherent-lacewing.ngrok-free.app',  # Add the ngrok URL here
+# ]
+# Ensure CSRF cookie is set properly in HTTPS environments
+# CSRF_COOKIE_SAMESITE = None  # Only for development
+# CSRF_COOKIE_SECURE = True  # If you are using HTTPS
+
+# Allowed methods
+# CORS_ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+# CORS_ALLOW_HEADERS = [
+#     'Accept',
+#     'Authorization',
+#     'Content-Type',
+#     'X-CSRFToken',
+#     'X-Requested-With',
+#     'ngrok-skip-browser-warning',
+#     'withCredentials'
+# ]
 
 AUTH_USER_MODEL = 'accounts.Users'
 
@@ -64,16 +85,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    # 'rest_framework.authtoken',
+    'rest_framework_simplejwt.token_blacklist',
+    'djoser',
     'corsheaders',
     'accounts',
     'webapp',
     'linemessagingapi',
+    'storages',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Must be before CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -82,20 +108,23 @@ MIDDLEWARE = [
 ]
 
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/api-auth/login/'
+LOGOUT_REDIRECT_URL = '/'
 
 ROOT_URLCONF = 'bloodlink.urls'
 
 REST_FRAMEWORK = {
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE': 10
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'rest_framework.authentication.TokenAuthentication',
     #     'rest_framework.authentication.SessionAuthentication',
-    #     'rest_framework.authentication.BasicAuthentication',
-    # ),
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ),
+    # ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 TEMPLATES = [
@@ -168,3 +197,41 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+#     'AUTH_HEADER_TYPES': ('JWT',),
+#     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+#     'USER_ID_FIELD': 'id',
+#     'USER_ID_CLAIM': 'user_id',
+# }
+SIMPLE_JWT = {
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+# Djoser config
+# DJOSER = {
+#     'SERIALIZERS': {
+#         'user_create': 'core.serializers.UserCreateSerializer',
+#         'current_user': 'core.serializers.UserSerializer',
+#         'user': 'core.serializers.UserSerializer',
+#     },
+#     'SEND_ACTIVATION_EMAIL': True,
+#     'ACTIVATION_URL': 'auth/activate/?uid={uid}&token={token}',
+#     'PASSWORD_RESET_CONFIRM_URL': 'auth/reset-password/?uid={uid}&token={token}',
+#     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True
+# }
+
+
+# Google Cloud Storage Configuration
+# DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = 'donation-history-images'  # Replace with your GCS bucket name
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    'D:/Y4/BloodLink2/blooddonation-backend/bloodlinkadmin.json'  # Path to your GCS service account key
+)
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'  # Media URL for serving uploaded files

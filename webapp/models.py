@@ -2,10 +2,18 @@ from django.db import models
 from accounts.models import Users
 from django.utils import timezone
 
+from storages.backends.gcloud import GoogleCloudStorage
+from django.conf import settings
+
+class GCSMediaStorage(GoogleCloudStorage):
+    bucket_name = settings.GS_BUCKET_NAME
+    location = ''  # To avoid creating folders
+
+
 facility_type_choice = (
-    ('ร','โรงพยาบาล'),
-    ('ศ','ศูนย์กาชาด'),
-    ('ค','หน่วยรับบริจาคเคลื่อนที่'),
+    ('1','โรงพยาบาล'),
+    ('2','ศูนย์กาชาด'),
+    ('3','หน่วยรับบริจาคเคลื่อนที่'),
 )
 
 class Region(models.Model):
@@ -36,7 +44,7 @@ class SubDistrict(models.Model):
         return self.name
 
 class DonationLocation(models.Model):
-    name = models.CharField(max_length=50, null=True, blank=False)
+    name = models.CharField(max_length=200, null=True, blank=False)
     address = models.CharField(max_length=200, null=True, blank=True)
     keyword = models.CharField(max_length=200, null=True, blank=True)
 
@@ -46,7 +54,7 @@ class DonationLocation(models.Model):
     longitude = models.DecimalField(max_digits=20, decimal_places=15, null=True, blank=True)
     contact = models.CharField(max_length=200, null=True, blank=True) #still thinking number or email
     # facility_type = models.CharField(max_length=50, null=True, blank=True) #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
-    facility_type = models.CharField(max_length=50, null=True, blank=True, choices=facility_type_choice) #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
+    facility_type = models.CharField(max_length=50, null=True, blank=True, choices=facility_type_choice, default='1') #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
     available_date = models.DateTimeField(null=True, blank=True) #สำหรับหน่วยรับบริจาคเคลื่อนที่
     opening_time = models.TimeField(null=True, blank=True)
     closing_time = models.TimeField(null=True, blank=True)
@@ -62,7 +70,15 @@ class DonationHistory(models.Model):
 
     donation_date = models.DateTimeField("donation date", null=True, blank=True)
     location = models.ForeignKey(DonationLocation, on_delete=models.CASCADE)
-    donation_image = models.FilePathField #just store image path of user's donation image from LINE
+    # donation_image = models.FilePathField #just store image path of user's donation image from LINE
+    # donation_image = models.CharField(max_length=500, blank=True, null=True)
+    # donation_image = models.FileField(upload_to='', blank=True, null=True)  # Upload to GCS
+    donation_image = models.FileField(
+        upload_to='',  # No subfolder creation
+        storage=GCSMediaStorage(),  # Use the GCS storage backend for this field only
+        blank=True,
+        null=True
+    )
     verify = models.BooleanField(default=False)
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)
@@ -79,7 +95,7 @@ class Post(models.Model):
     contact = models.CharField(max_length=200, null=True, blank=True) #might add User.contact, still thinking number or email
     number_interest = models.IntegerField(null=True, blank=True)
     number_donor = models.IntegerField(null=True, blank=True)
-    show = models.BooleanField(default=False)
+    show = models.BooleanField(default=True)
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)
 

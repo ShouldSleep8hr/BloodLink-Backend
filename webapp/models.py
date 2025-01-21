@@ -73,6 +73,7 @@ class DonationHistory(models.Model):
     # donation_image = models.FilePathField #just store image path of user's donation image from LINE
     # donation_image = models.CharField(max_length=500, blank=True, null=True)
     # donation_image = models.FileField(upload_to='', blank=True, null=True)  # Upload to GCS
+    
     donation_image = models.FileField(
         upload_to='',  # No subfolder creation
         storage=GCSMediaStorage(),  # Use the GCS storage backend for this field only

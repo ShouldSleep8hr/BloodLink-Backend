@@ -16,6 +16,9 @@ from datetime import timedelta
 
 from google.oauth2 import service_account
 
+import os
+from pathlib import Path
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,14 +32,16 @@ SECRET_KEY = 'django-insecure-_3)d@fg!_b#+nnu-4x&pa^ty0ew$*kz6nzewrz218hgame8gv-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['secretly-coherent-lacewing.ngrok-free.app', '127.0.0.1', 'localhost']
+# ALLOWED_HOSTS = ['secretly-coherent-lacewing.ngrok-free.app', '127.0.0.1', 'localhost', '10.148.0.2', '34.126.64.47']
+ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5173', # Vue.js app
     'http://localhost:5173', # Vue.js app
     # 'http://127.0.0.1:8000', # backend local host
     # 'http://localhost:8000', # backend local host
-    'https://secretly-coherent-lacewing.ngrok-free.app', # Ngrok or any other domain used for tunneling
+    'https://bloodlink.up.railway.app',
+    # 'https://secretly-coherent-lacewing.ngrok-free.app', # Ngrok or any other domain used for tunneling
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -95,11 +100,21 @@ INSTALLED_APPS = [
     'storages',
 ]
 
+# MIDDLEWARE = [
+#     'django.middleware.security.SecurityMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'corsheaders.middleware.CorsMiddleware',
+#     'django.middleware.common.CommonMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+# ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -149,6 +164,23 @@ WSGI_APPLICATION = 'bloodlink.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# os.environ.setdefault("PGDATABASE", "bloodlink")
+# os.environ.setdefault("PGUSER", "username")
+# os.environ.setdefault("PGPASSWORD", "")
+# os.environ.setdefault("PGHOST", "localhost")
+# os.environ.setdefault("PGPORT", "5432")
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ["PGDATABASE"],
+#         'USER': os.environ["PGUSER"],
+#         'PASSWORD': os.environ["PGPASSWORD"],
+#         'HOST': os.environ["PGHOST"],
+#         'PORT': os.environ["PGPORT"],
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -193,6 +225,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -232,6 +267,6 @@ SIMPLE_JWT = {
 # DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = 'donation-history-images'  # Replace with your GCS bucket name
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    'D:/Y4/BloodLink2/blooddonation-backend/bloodlinkadmin.json'  # Path to your GCS service account key
+    BASE_DIR / 'bloodlinkadmin.json'  # Path to your GCS service account key
 )
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'  # Media URL for serving uploaded files

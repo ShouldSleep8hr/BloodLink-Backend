@@ -66,7 +66,7 @@ class Webhook(APIView):
         data = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": "https://secretly-coherent-lacewing.ngrok-free.app/line",
+            "redirect_uri": "https://bloodlink.up.railway.app/line",
             "client_id": os.getenv('CLIENT_ID'),
             "client_secret": os.getenv('CLIENT_SECRET'),
         }

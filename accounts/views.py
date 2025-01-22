@@ -82,7 +82,7 @@ class CustomLoginView(TokenObtainPairView):
                 f"https://access.line.me/oauth2/v2.1/authorize"
                 f"?response_type=code"
                 f"&client_id=2006630011"  # LINE Channel ID
-                f"&redirect_uri=https://secretly-coherent-lacewing.ngrok-free.app/line"  # Callback URL
+                f"&redirect_uri=https://bloodlink.up.railway.app/line"  # Callback URL
                 f"&state={state}"  # CSRF prevention
                 f"&bot_prompt=aggressive" # normal, aggressive	
                 f"&scope=profile%20openid%20email"  # Required scopes

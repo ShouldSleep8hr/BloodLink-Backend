@@ -19,9 +19,12 @@ from google.oauth2 import service_account
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# load_dotenv(dotenv_path=BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -166,11 +169,11 @@ WSGI_APPLICATION = 'bloodlink.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-os.environ.setdefault("PGDATABASE", "bloodlink")
-os.environ.setdefault("PGUSER", "username")
-os.environ.setdefault("PGPASSWORD", "")
-os.environ.setdefault("PGHOST", "localhost")
-os.environ.setdefault("PGPORT", "5432")
+# os.environ.setdefault("PGDATABASE", "bloodlink")
+# os.environ.setdefault("PGUSER", "username")
+# os.environ.setdefault("PGPASSWORD", "")
+# os.environ.setdefault("PGHOST", "localhost")
+# os.environ.setdefault("PGPORT", "5432")
 
 DATABASES = {
     'default': {

@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_3)d@fg!_b#+nnu-4x&pa^ty0ew$*kz6nzewrz218hgame8gv-'
+SECRET_KEY = os.getenv('SECRET_KEY', 'default-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,8 +40,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173', # Vue.js app
     # 'http://127.0.0.1:8000', # backend local host
     # 'http://localhost:8000', # backend local host
-    'https://bloodlink.up.railway.app',
     # 'https://secretly-coherent-lacewing.ngrok-free.app', # Ngrok or any other domain used for tunneling
+    'https://bloodlink.up.railway.app',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -57,11 +57,12 @@ CORS_ALLOW_HEADERS = [
     'ngrok-skip-browser-warning',
 ]
 
-# CSRF_TRUSTED_ORIGINS = [
-#     'http://127.0.0.1:5173', #front end site
-#     'http://localhost:5173', 
-#     'https://secretly-coherent-lacewing.ngrok-free.app',  # Add the ngrok URL here
-# ]
+CSRF_TRUSTED_ORIGINS = [
+    # 'http://127.0.0.1:5173',
+    # 'http://localhost:5173', 
+    # 'https://secretly-coherent-lacewing.ngrok-free.app',
+    'https://bloodlink.up.railway.app',
+]
 # Ensure CSRF cookie is set properly in HTTPS environments
 # CSRF_COOKIE_SAMESITE = None  # Only for development
 # CSRF_COOKIE_SECURE = True  # If you are using HTTPS
@@ -115,6 +116,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -225,8 +227,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -265,8 +267,6 @@ SIMPLE_JWT = {
 
 # Google Cloud Storage Configuration
 # DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_BUCKET_NAME = 'donation-history-images'  # Replace with your GCS bucket name
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    BASE_DIR / 'bloodlinkadmin.json'  # Path to your GCS service account key
-)
+GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME', 'default-bucket-name')
+GS_CREDENTIALS = os.getenv('GS_CREDENTIALS_PATH', '/default/path/to/credentials.json')
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'  # Media URL for serving uploaded files

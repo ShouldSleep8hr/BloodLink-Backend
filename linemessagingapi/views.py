@@ -18,6 +18,8 @@ from linemessagingapi.services.nearest_location import calculate_haversine_dista
 
 from jwt import decode, ExpiredSignatureError, InvalidTokenError
 
+import os
+
 # from rest_framework.authentication import TokenAuthentication
 
 # from django.shortcuts import redirect
@@ -60,13 +62,17 @@ class Webhook(APIView):
 
         # Exchange the authorization code for an access token
         token_url = "https://api.line.me/oauth2/v2.1/token"
+        
         data = {
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": "https://secretly-coherent-lacewing.ngrok-free.app/line",
-            "client_id": "2006630011",
-            "client_secret": "2b7ad148dcbb206e8a9aeb281d36022b",
+            "client_id": os.getenv('CLIENT_ID'),
+            "client_secret": os.getenv('CLIENT_SECRET'),
         }
+        if not data["client_id"] or not data["client_secret"]:
+            raise ValueError("CLIENT_ID and CLIENT_SECRET must be set in the environment.")
+        
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
         try:

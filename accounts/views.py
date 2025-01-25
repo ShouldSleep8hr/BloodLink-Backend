@@ -26,9 +26,8 @@ from linemessagingapi.models import NonceMapping
 #     return JsonResponse({'csrfToken': token})
 
 class UserViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
+    permission_classes = [permissions.AllowAny]
+    
     queryset = Users.objects.all()
     serializer_class = UserSerializer
     # permission_classes = [permissions.IsAuthenticated]

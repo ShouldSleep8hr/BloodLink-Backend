@@ -31,11 +31,14 @@
 
 from rest_framework import serializers
 from accounts.models import Users
+from webapp.serializers import PreferredAreaSerializer
 
 class UserSerializer(serializers.ModelSerializer):
+    preferred_areas = PreferredAreaSerializer(many=True, read_only=True)
+
     class Meta:
         model = Users
-        fields = ['id', 'line_user_id', 'email']  # Include only the necessary fields
+        fields = ['id', 'line_user_id', 'email', 'birthdate', 'phone_number', 'blood_type', 'latest_donation_date', 'preferred_areas']
         extra_kwargs = {
             'email': {'required': True},  # Ensure email is required
             'line_user_id': {'required': True},  # LINE ID is required

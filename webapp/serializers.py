@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from webapp.models import Post, DonationLocation, SubDistrict, Province, Region, announcements, DonationHistory
+from webapp.models import Post, DonationLocation, SubDistrict, Province, Region, announcements, DonationHistory, PreferredArea
 
 class announcements_serializer(serializers.ModelSerializer):
     class Meta:
@@ -106,3 +106,11 @@ class DonationHistorySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Directly create the donation history record
         return DonationHistory.objects.create(**validated_data)
+    
+class PreferredAreaSerializer(serializers.ModelSerializer):
+    subdistricts = SubDistrictSerializer(many=True, read_only=True)
+    districts = DistrictSerializer(many=True, read_only=True)
+    provinces = ProvinceSerializer(many=True, read_only=True)
+    class Meta:
+        model = PreferredArea
+        fields = ['id', 'subdistricts', 'districts', 'provinces']

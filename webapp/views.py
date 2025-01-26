@@ -32,6 +32,16 @@ class UserAchievement_viewset(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get('user')
+        achievement_id = self.request.query_params.get('achievement')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        if achievement_id:
+            queryset = queryset.filter(achievement_id=achievement_id)
+        return queryset
+
 class Event_viewset(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
@@ -45,6 +55,16 @@ class EventParticipant_viewset(viewsets.ModelViewSet):
 
     authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get('user')
+        event_id = self.request.query_params.get('event')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        if event_id:
+            queryset = queryset.filter(event_id=event_id)
+        return queryset
 
 class Announcement_viewset(viewsets.ModelViewSet):
     queryset = Announcement.objects.all()
@@ -120,6 +140,13 @@ class DonationHistoryViewSet(viewsets.ModelViewSet):
     queryset = DonationHistory.objects.all()
     serializer_class = DonationHistorySerializer
     pagination_class = CustomPagination  # Set the custom pagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        return queryset
 
     # def get_queryset(self):
     #     # Return only donation histories for the authenticated user

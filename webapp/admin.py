@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from webapp.models import Region, Province, District, SubDistrict, DonationLocation, DonationHistory, Post, PreferredArea, Announcement
+from webapp.models import Region, Province, District, SubDistrict, DonationLocation, DonationHistory, Post, PreferredArea, Announcement, Achievement, UserAchievement, Event, EventParticipant
 
 class DonationLocationAdmin(admin.ModelAdmin):
     # Specify the fields you want to display in the list view
@@ -56,3 +56,7 @@ admin.site.register(DonationHistory)
 admin.site.register(Post)
 admin.site.register(PreferredArea)
 admin.site.register(Announcement)
+admin.site.register(Achievement)
+admin.site.register(UserAchievement)
+admin.site.register(Event)
+admin.site.register(EventParticipant)

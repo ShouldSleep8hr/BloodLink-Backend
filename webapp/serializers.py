@@ -7,11 +7,10 @@ class AchievementSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description']
 
 class UserAchievementSerializer(serializers.ModelSerializer):
-    achievement = AchievementSerializer()  # Nested serializer to show achievement details
-
+    achievement = AchievementSerializer()
     class Meta:
         model = UserAchievement
-        fields = ['id', 'achievement', 'earned_at']
+        fields = ['id', 'user', 'achievement', 'earned_at']
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,11 +18,10 @@ class EventSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'start_date', 'end_date']
 
 class EventParticipantSerializer(serializers.ModelSerializer):
-    achievement = AchievementSerializer()  # Nested serializer to show achievement details
-
+    event = EventSerializer()
     class Meta:
         model = EventParticipant
-        fields = ['id', 'event', 'joined_at']
+        fields = ['id', 'user', 'event', 'joined_at']
 
 class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
@@ -106,6 +104,7 @@ class PostSerializer(serializers.ModelSerializer):
         return post
     
 class DonationHistorySerializer(serializers.ModelSerializer):
+    location = DonationLocationSerializer()
     donation_image = serializers.ImageField(required=False, allow_null=True)  # Optional image field
     
     class Meta:

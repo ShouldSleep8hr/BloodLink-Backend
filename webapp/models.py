@@ -120,12 +120,43 @@ class PreferredArea(models.Model):
     def __str__(self):
         return self.user.email
 
-class announcements(models.Model):
+class Announcement(models.Model):
     title = models.CharField(max_length=200, null=True, blank=True)
-    content = models.TextField(max_length=200, null=True, blank=True)
+    content = models.TextField(null=True, blank=True)
     reference = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.title
 
+class Achievement(models.Model):
+    name = models.CharField(max_length=50, null=True, blank=False)
+    description = models.TextField(null=True, blank=True)
+    # image = models.ImageField(upload_to='achievement_images/', null=True, blank=True)
+
+    def __str__(self):
+        return self.name
     
+class UserAchievement(models.Model):
+    achievement = models.ForeignKey(Achievement, related_name='user_achievements', on_delete=models.CASCADE, null=True, blank=False)
+    user    = models.ForeignKey(Users, related_name='user_achievements', on_delete=models.CASCADE, null=True, blank=False)
+    earned_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.user} earned {self.achievement} at {self.earned_at}"
+
+class Event(models.Model):
+    name = models.CharField(max_length=50, null=True, blank=False)
+    description = models.TextField(null=True, blank=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateField(null=True, blank=False)
+
+    def __str__(self):
+        return self.name
+    
+class EventParticipant(models.Model):
+    event = models.ForeignKey(Event, related_name='event_participants', on_delete=models.CASCADE, null=True, blank=False)
+    user    = models.ForeignKey(Users, related_name='event_participants', on_delete=models.CASCADE, null=True, blank=False)
+    joined_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.user} joined {self.event} at {self.joined_at}"

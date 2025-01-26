@@ -1,9 +1,33 @@
 from rest_framework import serializers
-from webapp.models import Post, DonationLocation, SubDistrict, Province, Region, announcements, DonationHistory, PreferredArea
+from webapp.models import Post, DonationLocation, SubDistrict, Province, Region, Announcement, DonationHistory, PreferredArea, Achievement, UserAchievement, Event, EventParticipant
 
-class announcements_serializer(serializers.ModelSerializer):
+class AchievementSerializer(serializers.ModelSerializer):
     class Meta:
-        model = announcements
+        model = Achievement
+        fields = ['id', 'name', 'description']
+
+class UserAchievementSerializer(serializers.ModelSerializer):
+    achievement = AchievementSerializer()  # Nested serializer to show achievement details
+
+    class Meta:
+        model = UserAchievement
+        fields = ['id', 'achievement', 'earned_at']
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'description', 'start_date', 'end_date']
+
+class EventParticipantSerializer(serializers.ModelSerializer):
+    achievement = AchievementSerializer()  # Nested serializer to show achievement details
+
+    class Meta:
+        model = EventParticipant
+        fields = ['id', 'event', 'joined_at']
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Announcement
         fields = ['title','content','reference']
 
 class RegionSerializer(serializers.ModelSerializer):

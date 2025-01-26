@@ -1,11 +1,11 @@
-from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, announcements, DonationHistory
+from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant
 from rest_framework import permissions, viewsets, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, announcements_serializer, DonationHistorySerializer
+from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, AnnouncementSerializer, DonationHistorySerializer, AchievementSerializer, UserAchievementSerializer, EventSerializer, EventParticipantSerializer
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
@@ -18,9 +18,37 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'paginator'  # Users can set ?paginator=2 to get 2 results per page
     max_page_size = 100  # Optionally limit the maximum number of results per page
 
-class announcement_viewset(viewsets.ModelViewSet):
-    queryset = announcements.objects.all()
-    serializer_class = announcements_serializer
+class Achievement_viewset(viewsets.ModelViewSet):
+    queryset = Achievement.objects.all()
+    serializer_class = AchievementSerializer
+
+    authentication_classes = [TokenAuthentication]  # Use token authentication
+    permission_classes = [permissions.AllowAny]
+
+class UserAchievement_viewset(viewsets.ModelViewSet):
+    queryset = UserAchievement.objects.all()
+    serializer_class = UserAchievementSerializer
+
+    authentication_classes = [TokenAuthentication]  # Use token authentication
+    permission_classes = [permissions.AllowAny]
+
+class Event_viewset(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+
+    authentication_classes = [TokenAuthentication]  # Use token authentication
+    permission_classes = [permissions.AllowAny]
+
+class EventParticipant_viewset(viewsets.ModelViewSet):
+    queryset = EventParticipant.objects.all()
+    serializer_class = EventParticipantSerializer
+
+    authentication_classes = [TokenAuthentication]  # Use token authentication
+    permission_classes = [permissions.AllowAny]
+
+class Announcement_viewset(viewsets.ModelViewSet):
+    queryset = Announcement.objects.all()
+    serializer_class = AnnouncementSerializer
 
     authentication_classes = [TokenAuthentication]  # Use token authentication
     # permission_classes = [permissions.IsAuthenticated]

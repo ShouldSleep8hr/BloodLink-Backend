@@ -125,6 +125,16 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     pagination_class = CustomPagination  # Set the custom pagination
 
+    def get_queryset(self):
+        # Check for query parameter `limit`
+        limit = self.request.query_params.get('limit', None)
+        queryset = Post.objects.order_by('-created_on')
+
+        if limit is not None: 
+            return queryset[:int(limit)]
+
+        return queryset
+
 # class PostCreateView(generics.CreateAPIView):
 #     queryset = Post.objects.all()
 #     serializer_class = PostSerializer

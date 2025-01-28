@@ -107,11 +107,12 @@ class PreferredArea(models.Model):
     user    = models.ForeignKey(Users, related_name='preferred_areas', on_delete=models.CASCADE, null=True, blank=False)
 
     # Allow multiple subdistricts, districts, and provinces
-    subdistricts = models.ManyToManyField(SubDistrict, related_name='preferred_areas', blank=True)
-    districts = models.ManyToManyField(District, related_name='preferred_areas', blank=True)
-    provinces = models.ManyToManyField(Province, related_name='preferred_areas', blank=True)
-    # subdistrict = models.ForeignKey(SubDistrict, related_name='preferred_areas', on_delete=models.SET_NULL, null=True, blank=True)
-    # district = models.ForeignKey(District, related_name='preferred_areas', on_delete=models.SET_NULL, null=True, blank=True)
+    # subdistricts = models.ManyToManyField(SubDistrict, related_name='preferred_areas', blank=True)
+    # districts = models.ManyToManyField(District, related_name='preferred_areas', blank=True)
+    # provinces = models.ManyToManyField(Province, related_name='preferred_areas', blank=True)
+    
+    subdistrict = models.ForeignKey(SubDistrict, related_name='preferred_areas', on_delete=models.SET_NULL, null=True, blank=True)
+    district = models.ForeignKey(District, related_name='preferred_areas', on_delete=models.SET_NULL, null=True, blank=True)
     # province = models.ForeignKey(Province, related_name='preferred_areas', on_delete=models.SET_NULL, null=True, blank=True)
     
     created_on = models.DateTimeField("date created", default=timezone.now)

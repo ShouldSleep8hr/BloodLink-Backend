@@ -53,7 +53,7 @@ class Users(AbstractUser):
 
     # Set the email field to be used as the unique identifier for login
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'birthdate']
+    REQUIRED_FIELDS = ['line_user_id']
 
     objects = CustomUserManager()  # Set the custom manager
     

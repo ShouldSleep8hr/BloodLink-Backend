@@ -32,13 +32,15 @@ class Users(AbstractUser):
     # Use email as the username field for authentication
     email = models.EmailField(unique=True, blank=False)
 
-    first_name = models.CharField(max_length=50, null=True, blank=False)
-    last_name = models.CharField(max_length=50, null=True, blank=False)
+    # first_name = models.CharField(max_length=50, null=True, blank=False)
+    # last_name = models.CharField(max_length=50, null=True, blank=False)
+    full_name = models.CharField(max_length=100, null=True, blank=False)
     
     birthdate = models.DateField(null=True, blank=False)
     phone_number = models.CharField(max_length=10, null=True, blank=False)
     
     line_user_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    line_username = models.CharField(max_length=255, unique=False, blank=True, null=True)
     
     personal_info_consent = models.BooleanField(default=False)
     blood_type = models.CharField(max_length=10, null=True, blank=True) #example: AB|Rh+

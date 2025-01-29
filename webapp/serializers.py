@@ -132,12 +132,13 @@ class DonationHistorySerializer(serializers.ModelSerializer):
     
 class PreferredAreaSerializer(serializers.ModelSerializer):
     # subdistricts = SubDistrictSerializer(many=True, read_only=True)
-    # districts = DistrictSerializer(many=True, read_only=True)
-    # provinces = ProvinceSerializer(many=True, read_only=True)
+    districts = DistrictSerializer(many=True, read_only=True)
+    provinces = ProvinceSerializer(many=True, read_only=True)
 
-    subdistrict = serializers.CharField(source='subdistrict.name', read_only=True)
-    district = serializers.CharField(source='subdistrict.district.name', read_only=True)
+    # subdistrict = serializers.CharField(source='subdistrict.name', read_only=True)
+    # district = serializers.CharField(source='subdistrict.district.name', read_only=True)
+    # province = serializers.CharField(source='subdistrict.district.province.name', read_only=True)
     class Meta:
         model = PreferredArea
         # fields = ['id', 'subdistricts', 'districts', 'provinces']
-        fields = ['id', 'subdistrict', 'district']
+        fields = ['id', 'districts', 'provinces']

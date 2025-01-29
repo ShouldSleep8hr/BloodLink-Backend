@@ -38,7 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ['id', 'full_name', 'line_user_id', 'line_username', 'email', 'birthdate', 'phone_number', 'blood_type', 'latest_donation_date', 'preferred_areas']
+        fields = ['id', 'full_name', 'line_user_id', 'line_username', 'email', 'birthdate', 'phone_number', 'blood_type', 'latest_donation_date', 'preferred_areas', 'score', 'created_on']
         extra_kwargs = {
             'email': {'required': True},  # Ensure email is required
             'line_user_id': {'required': True},  # LINE ID is required

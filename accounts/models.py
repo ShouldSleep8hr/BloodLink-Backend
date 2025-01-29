@@ -46,6 +46,8 @@ class Users(AbstractUser):
     blood_type = models.CharField(max_length=10, null=True, blank=True) #example: AB|Rh+
     latest_donation_date = models.DateField(null=True, blank=True)
 
+    score = models.IntegerField(default=0)
+
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)
 

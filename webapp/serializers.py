@@ -76,7 +76,7 @@ class PostSerializer(serializers.ModelSerializer):
     # longitude = serializers.DecimalField(max_digits=20, decimal_places=15, source='location.longitude', read_only=True)
     class Meta:
         model = Post
-        fields = ['id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 'due_date','contact', 'number_interest', 'number_donor', 'show', 'created_on']
+        fields = ['id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 'new_address', 'due_date','contact', 'number_interest', 'number_donor', 'show', 'created_on']
 
     def create(self, validated_data):
         # Manually retrieve the location ID from the request data

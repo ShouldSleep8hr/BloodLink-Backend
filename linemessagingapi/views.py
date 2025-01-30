@@ -341,7 +341,7 @@ class Webhook(APIView):
 
 @receiver(post_save, sender=Post)
 def notify_users_on_post_creation(sender, instance, created, **kwargs):
-    if created and instance.show:  # Check if it's a new post and it's meant to be shown
+    if created and instance.show and instance.location:  # Check if it's a new post and it's meant to be shown
         post_subdistrict = instance.location.subdistrict
         post_district = post_subdistrict.district
         post_province = post_district.province
@@ -458,7 +458,7 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                         },
                         {
                             "type": "text",
-                            "text": f"สถานที่: {instance.location.name}",
+                            "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}",
                             "contents": [],
                             "wrap": True
                         }

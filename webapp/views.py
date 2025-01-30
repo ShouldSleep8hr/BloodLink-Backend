@@ -9,6 +9,7 @@ from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
+from django.utils import timezone
 
 import logging
 
@@ -124,13 +125,19 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = CustomPagination  # Set the custom pagination
-
+    
     def get_queryset(self):
-        # Check for query parameter `limit`
-        limit = self.request.query_params.get('limit', None)
-        queryset = Post.objects.order_by('-created_on')
+        now = timezone.now()
 
-        if limit is not None: 
+        # Automatically update `show=False` for expired posts
+        Post.objects.filter(due_date__lt=now, show=True).update(show=False)
+
+        # Get posts that are still `show=True`
+        queryset = Post.objects.filter(show=True).order_by('-created_on')
+
+        # Apply the `limit` parameter if present
+        limit = self.request.query_params.get('limit', None)
+        if limit is not None:
             return queryset[:int(limit)]
 
         return queryset

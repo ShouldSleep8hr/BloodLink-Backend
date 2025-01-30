@@ -89,7 +89,8 @@ class Post(models.Model):
     recipient_blood_type = models.CharField(max_length=10, null=True, blank=True) #example: AB|Rh+
     
     user = models.ForeignKey(Users, related_name='post', on_delete=models.CASCADE, null=True, blank=False)
-    location = models.ForeignKey(DonationLocation, related_name='post', on_delete=models.SET_NULL, null=True, blank=False)
+    location = models.ForeignKey(DonationLocation, related_name='post', on_delete=models.SET_NULL, null=True, blank=True)
+    new_address = models.CharField(max_length=255, null=True, blank=True)
 
     due_date = models.DateTimeField("due date", null=True, blank=True)
     detail = models.TextField(max_length=200, null=True, blank=True)

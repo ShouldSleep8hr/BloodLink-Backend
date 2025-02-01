@@ -1,11 +1,11 @@
-from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant
+from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant, PreferredArea
 from rest_framework import permissions, viewsets, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, AnnouncementSerializer, DonationHistorySerializer, AchievementSerializer, UserAchievementSerializer, EventSerializer, EventParticipantSerializer
+from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, AnnouncementSerializer, DonationHistorySerializer, AchievementSerializer, UserAchievementSerializer, EventSerializer, EventParticipantSerializer, PreferredAreaSerializer
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
@@ -18,6 +18,13 @@ logger = logging.getLogger(__name__)
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'paginator'  # Users can set ?paginator=2 to get 2 results per page
     max_page_size = 100  # Optionally limit the maximum number of results per page
+
+class PreferredArea_viewset(viewsets.ModelViewSet):
+    queryset = PreferredArea.objects.all()
+    serializer_class = PreferredAreaSerializer
+
+    authentication_classes = [TokenAuthentication]  # Use token authentication
+    permission_classes = [permissions.AllowAny]
 
 class Achievement_viewset(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()

@@ -20,7 +20,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from accounts.views import UserViewSet
-from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, Announcement_viewset, DonationHistoryViewSet, Achievement_viewset, UserAchievement_viewset, Event_viewset, EventParticipant_viewset
+from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, Announcement_viewset, DonationHistoryViewSet, Achievement_viewset, UserAchievement_viewset, Event_viewset, EventParticipant_viewset, PreferredArea_viewset
 
 from linemessagingapi.views import Webhook
 
@@ -40,6 +40,7 @@ router.register(r'webapp/achievement', Achievement_viewset)
 router.register(r'webapp/user-achievement', UserAchievement_viewset)
 router.register(r'webapp/event', Event_viewset)
 router.register(r'webapp/event-participant', EventParticipant_viewset)
+router.register(r'webapp/preferred-area', PreferredArea_viewset)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

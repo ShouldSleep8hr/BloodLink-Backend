@@ -16,6 +16,11 @@ facility_type_choice = (
     ('3','หน่วยรับบริจาคเคลื่อนที่'),
 )
 
+donation_type_choice = [
+    ("ปกติ", "บริจาคโลหิตทั่วไป"),
+    ("ฉุกเฉิน", "บริจาคโลหิตฉุกเฉิน"),
+]
+
 class Region(models.Model):
     name = models.CharField(max_length=50, null=True, blank=False)
 
@@ -70,16 +75,24 @@ class DonationHistory(models.Model):
 
     donation_date = models.DateTimeField("donation date", null=True, blank=True)
     location = models.ForeignKey(DonationLocation, on_delete=models.CASCADE)
-    # donation_image = models.FilePathField #just store image path of user's donation image from LINE
-    # donation_image = models.CharField(max_length=500, blank=True, null=True)
-    # donation_image = models.FileField(upload_to='', blank=True, null=True)  # Upload to GCS
+    share_status = models.BooleanField(default=False)
     
+    donor_card_image = models.FileField(
+        upload_to="",
+        storage=GCSMediaStorage(),
+        blank=True,
+        null=True
+    )
     donation_image = models.FileField(
         upload_to='',  # No subfolder creation
         storage=GCSMediaStorage(),  # Use the GCS storage backend for this field only
         blank=True,
         null=True
     )
+    image_description = models.TextField(blank=True, null=True)
+    donation_point = models.PositiveIntegerField(default=0)
+    donation_type = models.CharField(max_length=10, choices=donation_type_choice, default="ปกติ")
+    
     verify = models.BooleanField(default=False)
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)

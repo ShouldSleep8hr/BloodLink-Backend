@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from webapp.models import Post, DonationLocation, SubDistrict, Province, Region, Announcement, DonationHistory, PreferredArea, Achievement, UserAchievement, Event, EventParticipant
+from webapp.models import Post, DonationLocation, SubDistrict, District, Province, Region, Announcement, DonationHistory, PreferredArea, Achievement, UserAchievement, Event, EventParticipant
 
 class AchievementSerializer(serializers.ModelSerializer):
     class Meta:
@@ -104,12 +104,12 @@ class PostSerializer(serializers.ModelSerializer):
         return post
     
 class DonationHistorySerializer(serializers.ModelSerializer):
-    location = DonationLocationSerializer()
+    location_name = serializers.CharField(source='location.name', read_only=True) 
     donation_image = serializers.ImageField(required=False, allow_null=True)  # Optional image field
     
     class Meta:
         model = DonationHistory
-        fields = ['id', 'user', 'donation_date', 'location', 'donation_image', 'verify', 'created_on', 'updated_on']
+        fields = ['id', 'user', 'donation_date', 'location', 'location_name', 'share_status', 'donor_card_image', 'donation_image', 'image_description', 'donation_point', 'donation_type', 'verify', 'created_on', 'updated_on']
         read_only_fields = ['verify', 'created_on', 'updated_on']  # These fields are managed automatically
 
     def validate(self, data):
@@ -135,12 +135,18 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
     # districts = DistrictSerializer(many=True, read_only=True)
     # provinces = ProvinceSerializer(many=True, read_only=True)
 
-    district = serializers.CharField(source='district.name', read_only=True)
-    province = serializers.CharField(source='province.name', read_only=True)
+    # district_id = serializers.PrimaryKeyRelatedField(
+    #     queryset=District.objects.all(),
+    #     source='district',  # Maps to the ForeignKey field
+    #     write_only=True
+    # )
+
+    district_name = serializers.CharField(source='district.name', read_only=True)
+    province_name = serializers.CharField(source='province.name', read_only=True)
 
     # district = DistrictSerializer()
     # province = ProvinceSerializer()
     class Meta:
         model = PreferredArea
-        fields = ['id', 'user', 'district', 'province']
+        fields = ['id', 'user', 'district', 'district_name', 'province', 'province_name']
         # fields = ['id', 'districts', 'provinces']

@@ -45,6 +45,7 @@ CORS_ALLOWED_ORIGINS = [
     # 'http://localhost:8000', # backend local host
     # 'https://secretly-coherent-lacewing.ngrok-free.app', # Ngrok or any other domain used for tunneling
     'https://bloodlink.up.railway.app',
+    'https://kmitldev-blood-link.netlify.app',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -61,10 +62,11 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    # 'http://127.0.0.1:5173',
-    # 'http://localhost:5173', 
+    'http://127.0.0.1:5173',
+    'http://localhost:5173', 
     # 'https://secretly-coherent-lacewing.ngrok-free.app',
     'https://bloodlink.up.railway.app',
+    'https://kmitldev-blood-link.netlify.app',
 ]
 # Ensure CSRF cookie is set properly in HTTPS environments
 # CSRF_COOKIE_SAMESITE = None  # Only for development

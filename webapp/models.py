@@ -17,7 +17,7 @@ facility_type_choice = (
 )
 
 donation_type_choice = [
-    ("ปกติ", "บริจาคโลหิตทั่วไป"),
+    ("ทั่วไป", "บริจาคโลหิตทั่วไป"),
     ("ฉุกเฉิน", "บริจาคโลหิตฉุกเฉิน"),
 ]
 
@@ -91,7 +91,7 @@ class DonationHistory(models.Model):
     )
     image_description = models.TextField(blank=True, null=True)
     donation_point = models.PositiveIntegerField(default=0)
-    donation_type = models.CharField(max_length=10, choices=donation_type_choice, default="ปกติ")
+    donation_type = models.CharField(max_length=10, choices=donation_type_choice, default="ทั่วไป")
     
     verify = models.BooleanField(default=False)
     created_on = models.DateTimeField("date created", default=timezone.now)

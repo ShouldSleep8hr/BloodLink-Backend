@@ -79,30 +79,40 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 'new_address', 'due_date','contact', 'number_interest', 'number_donor', 'show', 'created_on']
 
     def create(self, validated_data):
-        # Manually retrieve the location ID from the request data
-        # location_id = self.context['request'].data.get('location')
-        location_id= self.context['request'].data.get('location')
+        request_data = self.context['request'].data
+        location_id = request_data.get('location')
+        new_address = request_data.get('new_address')
+
+        if not location_id and not new_address:
+            raise serializers.ValidationError({
+                "location": "Either 'location' or 'new_address' must be provided."
+            })
         
-        # if not location_id:
-        #     raise serializers.ValidationError({"location": "This field is required."})
-        if not location_id:
-            raise serializers.ValidationError({"location": "This field is required."})
+        # Raise error if both fields are provided
+        if location_id and new_address:
+            raise serializers.ValidationError({
+                "non_field_errors": ["You cannot provide both 'location' and 'new_address' at the same time."]
+            })
 
-        # Fetch the location instance based on the provided ID
-        try:
-            # location_instance = DonationLocation.objects.get(id=location_id)
-            location_instance = DonationLocation.objects.get(id=location_id)
-        except DonationLocation.DoesNotExist:
-            raise serializers.ValidationError({"location": "Location with this ID does not exist."})
+        if location_id:
+            try:
+                location_instance = DonationLocation.objects.get(id=location_id)
+                validated_data['location'] = location_instance
+            except DonationLocation.DoesNotExist:
+                raise serializers.ValidationError({
+                    "location": "Location with this ID does not exist."
+                })
+        
+        # Assign new_address if provided
+        if new_address:
+            validated_data['new_address'] = new_address
 
-        # Assign the location instance and the authenticated user
-        validated_data['location'] = location_instance
-        # validated_data['user'] = self.context['request'].user
-
-        print("Validated Data:", validated_data)
+        # print("Validated Data:", validated_data)
+        
         # Create the post
         post = Post.objects.create(**validated_data)
         return post
+    
     
 class DonationHistorySerializer(serializers.ModelSerializer):
     location_name = serializers.CharField(source='location.name', read_only=True) 

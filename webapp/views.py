@@ -79,7 +79,7 @@ class Announcement_viewset(viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer
 
     authentication_classes = [TokenAuthentication]  # Use token authentication
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 class DonationLocationViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]  # Use token authentication

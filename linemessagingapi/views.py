@@ -84,15 +84,23 @@ class Webhook(APIView):
 
         # Decode the ID token to get LINE user info
         id_token = token_data.get('id_token')
+        access_token = token_data.get('access_token')
+
+        if not id_token or not access_token:
+            return Response({'error': 'Missing tokens in response'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             decoded_token = decode(id_token, options={"verify_signature": False})  # Add verification in production
             line_user_id = decoded_token.get('sub')
             email = decoded_token.get("email")
+            profile_url = "https://api.line.me/v2/profile"
+            profile_headers = {"Authorization": f"Bearer {access_token}"}
         except (ExpiredSignatureError, InvalidTokenError) as e:
             return Response({'error': 'Invalid or expired ID token'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not line_user_id:
             return Response({'error': 'LINE user ID not found in token'}, status=status.HTTP_400_BAD_REQUEST)
+
 
         # Check if the LINE user ID exists in the database
         try:
@@ -347,10 +355,13 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
         post_province = post_district.province
 
         # Find users whose preferred areas match the post location
+        # users_to_notify = Users.objects.filter(
+        #     Q(preferred_areas__district=post_district) |
+        #     Q(preferred_areas__province=post_province)
+        # ).distinct()
         users_to_notify = Users.objects.filter(
-            Q(preferred_areas__subdistricts=post_subdistrict) |
-            Q(preferred_areas__districts=post_district) |
-            Q(preferred_areas__provinces=post_province)
+            Q(preferred_areas__district__id=post_district.id) |
+            Q(preferred_areas__province__id=post_province.id)
         ).distinct()
 
         # Initialize Webhook once to reuse it in the loop

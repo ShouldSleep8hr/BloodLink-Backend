@@ -99,6 +99,7 @@ class PostSerializer(serializers.ModelSerializer):
         validated_data['location'] = location_instance
         # validated_data['user'] = self.context['request'].user
 
+        print("Validated Data:", validated_data)
         # Create the post
         post = Post.objects.create(**validated_data)
         return post

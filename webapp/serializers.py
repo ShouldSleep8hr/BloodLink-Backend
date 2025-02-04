@@ -26,7 +26,7 @@ class EventParticipantSerializer(serializers.ModelSerializer):
 class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
-        fields = ['title','content','reference', 'image']
+        fields = ['title','content','reference', 'image', 'created_on', 'updated_on']
 
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:

@@ -145,6 +145,8 @@ class Announcement(models.Model):
         blank=True,
         null=True
     )
+    created_on = models.DateTimeField("date created", default=timezone.now)
+    updated_on = models.DateTimeField("date updated", auto_now=True)
 
     def __str__(self):
         return self.title
@@ -153,6 +155,8 @@ class Achievement(models.Model):
     name = models.CharField(max_length=50, null=True, blank=False)
     description = models.TextField(null=True, blank=True)
     # image = models.ImageField(upload_to='achievement_images/', null=True, blank=True)
+    created_on = models.DateTimeField("date created", default=timezone.now)
+    updated_on = models.DateTimeField("date updated", auto_now=True)
 
     def __str__(self):
         return self.name
@@ -170,6 +174,9 @@ class Event(models.Model):
     description = models.TextField(null=True, blank=True)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateField(null=True, blank=False)
+
+    created_on = models.DateTimeField("date created", default=timezone.now)
+    updated_on = models.DateTimeField("date updated", auto_now=True)
 
     def __str__(self):
         return self.name

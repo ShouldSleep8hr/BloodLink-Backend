@@ -46,7 +46,7 @@ CORS_ALLOWED_ORIGINS = [
     # 'http://localhost:8000', # backend local host
     # 'https://secretly-coherent-lacewing.ngrok-free.app', # Ngrok or any other domain used for tunneling
     'https://bloodlink.up.railway.app',
-    'https://netlify-fix--kmitldev-blood-link.netlify.app/',
+    'https://netlify-fix--kmitldev-blood-link.netlify.app',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -67,7 +67,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173', 
     # 'https://secretly-coherent-lacewing.ngrok-free.app',
     'https://bloodlink.up.railway.app',
-    'https://netlify-fix--kmitldev-blood-link.netlify.app/',
+    'https://netlify-fix--kmitldev-blood-link.netlify.app',
 ]
 # Ensure CSRF cookie is set properly in HTTPS environments
 # CSRF_COOKIE_SAMESITE = None  # Only for development
@@ -275,9 +275,20 @@ SIMPLE_JWT = {
 # DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME', 'default-bucket-name')
 
-credentials_json = os.getenv('GS_CREDENTIALS', 'default-gcs-credentials')
-# credentials_json = credentials_json.replace('\\n', '\n')
-# credentials_info = json.loads(credentials_json)
-GS_CREDENTIALS = service_account.Credentials.from_service_account_info(credentials_json)
+# gs_json_data = os.getenv("GS_CREDENTIALS")
+# if gs_json_data:
+#     gs_json_data = gs_json_data.replace("\\n", "\n")  # Ensure proper newline handling
+#     gs_json_data = gs_json_data.replace("\\", "\\\\")  # Escape all backslashes to ensure valid JSON
+
+#     # Parse the corrected JSON string
+#     gs_json_data = json.loads(gs_json_data)
+
+#     # Create credentials using the updated JSON
+#     GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gs_json_data)
+# else:
+#     raise ValueError("GS_CREDENTIALS environment variable is not set properly.")
+# gs_json_data = json.loads(gs_json_data)
+# print(gs_json_data)
+# GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gs_json_data)
 
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'  # Media URL for serving uploaded files

@@ -39,9 +39,10 @@ class Users(AbstractUser):
     birthdate = models.DateField(null=True, blank=False)
     phone_number = models.CharField(max_length=10, null=True, blank=False)
     
-    line_user_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
-    line_username = models.CharField(max_length=255, unique=False, blank=True, null=True)
-    
+    line_user_id = models.CharField(max_length=50, blank=True, null=True)
+    line_username = models.CharField(max_length=255, blank=True, null=True)
+    profile_picture = models.CharField(max_length=500, blank=True, null=True)
+
     personal_info_consent = models.BooleanField(default=False)
     blood_type = models.CharField(max_length=10, null=True, blank=True) #example: AB|Rh+
     latest_donation_date = models.DateField(null=True, blank=True)

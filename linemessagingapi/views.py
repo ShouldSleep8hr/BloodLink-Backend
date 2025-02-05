@@ -10,6 +10,7 @@ from accounts.serializers import UserSerializer
 from webapp.models import DonationLocation, Post
 from django.db.models import Q
 import requests
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -27,7 +28,7 @@ import os
 
 class Webhook(APIView):
     # authentication_classes = [TokenAuthentication]  # Use token authentication
-    permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
+    # permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,70 +54,96 @@ class Webhook(APIView):
 
         return Response(status=status.HTTP_200_OK)
     
-    def get(self, request, *args, **kwargs):
-        code = request.query_params.get('code')
-        state = request.query_params.get('state')
+    # def get(self, request, *args, **kwargs):
+    #     code = request.query_params.get('code')
+    #     state = request.query_params.get('state')
 
-        if not code or not state:
-            return Response({'error': 'Authorization code or state is missing'}, status=status.HTTP_400_BAD_REQUEST)
+    #     if not code or not state:
+    #         return Response({'error': 'Authorization code or state is missing'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Exchange the authorization code for an access token
-        token_url = "https://api.line.me/oauth2/v2.1/token"
+    #     # Validate state to prevent CSRF attacks
+    #     saved_state = request.session.pop('line_login_state', None)  # Retrieve and remove state from session
+    #     if saved_state != state:
+    #         return Response({'error': 'Invalid state parameter'}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # Exchange the authorization code for an access token
+    #     token_url = "https://api.line.me/oauth2/v2.1/token"
         
-        data = {
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": "https://bloodlink.up.railway.app/line",
-            "client_id": os.getenv('CLIENT_ID'),
-            "client_secret": os.getenv('CLIENT_SECRET'),
-        }
-        if not data["client_id"] or not data["client_secret"]:
-            raise ValueError("CLIENT_ID and CLIENT_SECRET must be set in the environment.")
+    #     data = {
+    #         "grant_type": "authorization_code",
+    #         "code": code,
+    #         "redirect_uri": "https://bloodlink.up.railway.app/line",
+    #         "client_id": os.getenv('CLIENT_ID'),
+    #         "client_secret": os.getenv('CLIENT_SECRET'),
+    #     }
+    #     if not data["client_id"] or not data["client_secret"]:
+    #         raise ValueError("CLIENT_ID and CLIENT_SECRET must be set in the environment.")
         
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    #     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-        try:
-            token_response = requests.post(token_url, data=data, headers=headers)
-            token_response.raise_for_status()
-            token_data = token_response.json()
-        except requests.RequestException as e:
-            return Response({'error': 'Failed to exchange code for token', 'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    #     try:
+    #         token_response = requests.post(token_url, data=data, headers=headers)
+    #         token_response.raise_for_status()
+    #         token_data = token_response.json()
+    #     except requests.RequestException as e:
+    #         return Response({'error': 'Failed to exchange code for token', 'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Decode the ID token to get LINE user info
-        id_token = token_data.get('id_token')
-        access_token = token_data.get('access_token')
+    #     # Decode the ID token to get LINE user info
+    #     id_token = token_data.get('id_token')
+    #     access_token = token_data.get('access_token')
 
-        if not id_token or not access_token:
-            return Response({'error': 'Missing tokens in response'}, status=status.HTTP_400_BAD_REQUEST)
+    #     if not id_token or not access_token:
+    #         return Response({'error': 'Missing tokens in response'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            decoded_token = decode(id_token, options={"verify_signature": False})  # Add verification in production
-            line_user_id = decoded_token.get('sub')
-            email = decoded_token.get("email")
-            profile_url = "https://api.line.me/v2/profile"
-            profile_headers = {"Authorization": f"Bearer {access_token}"}
-        except (ExpiredSignatureError, InvalidTokenError) as e:
-            return Response({'error': 'Invalid or expired ID token'}, status=status.HTTP_400_BAD_REQUEST)
+    #     try:
+    #         decoded_token = decode(id_token, options={"verify_signature": False})  # Add verification in production
+    #         line_user_id = decoded_token.get('sub')
+    #         email = decoded_token.get("email")
+    #     except (ExpiredSignatureError, InvalidTokenError) as e:
+    #         return Response({'error': 'Invalid or expired ID token'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not line_user_id:
-            return Response({'error': 'LINE user ID not found in token'}, status=status.HTTP_400_BAD_REQUEST)
+    #     if not line_user_id:
+    #         return Response({'error': 'LINE user ID not found in token'}, status=status.HTTP_400_BAD_REQUEST)
 
+    #     profile_url = "https://api.line.me/v2/profile"
+    #     profile_headers = {"Authorization": f"Bearer {access_token}"}
 
-        # Check if the LINE user ID exists in the database
-        try:
-            user = Users.objects.get(line_user_id=line_user_id)
-            # Log the user in (use your authentication mechanism here)
-            return Response({'message': 'User logged in', 'user_id': user.id, 'user_email': email}, status=status.HTTP_200_OK)
-        except Users.DoesNotExist:
-            # If user does not exist, redirect to registration
-            serializer = UserSerializer(data={
-                'line_user_id': line_user_id,
-                'email': email
-            })
-            if serializer.is_valid():
-                user = serializer.save()
-                return Response({'message': 'User registered successfully', 'user_email': user.email}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     try:
+    #         profile_response = requests.get(profile_url, headers=profile_headers)
+    #         profile_response.raise_for_status()
+    #         profile_data = profile_response.json()
+
+    #         picture_url = profile_data.get("pictureUrl")
+    #         display_name = profile_data.get("displayName")
+    #     except requests.RequestException as e:
+    #         display_name = None
+    #         picture_url = None
+
+    #     try:
+    #         # Check if user exists, update profile picture if needed
+    #         user, created = Users.objects.update_or_create(
+    #             line_user_id=line_user_id,
+    #             defaults={
+    #                 'email': email,
+    #                 'line_username': display_name,
+    #                 'profile_picture': picture_url,  # Refresh profile picture every login
+    #             }
+    #         )
+
+    #         # Generate JWT tokens
+    #         refresh = RefreshToken.for_user(user)
+    #         tokens = { 'refresh': str(refresh), 'access': str(refresh.access_token), }
+
+    #         return Response({
+    #             'message': 'User logged in' if not created else 'User registered successfully',
+    #             'user_id': user.id,
+    #             'user_email': user.email,
+    #             'line_username': user.line_username,
+    #             'profile_picture': user.profile_picture,
+    #             'tokens': tokens,
+    #         }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+    #     except Exception as e:
+    #         return Response({'error': 'Failed to update or create user', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def handle_message_event(self, event):
         user_id = event['source']['userId']
@@ -362,7 +389,7 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
         users_to_notify = Users.objects.filter(
             Q(preferred_areas__district__id=post_district.id) |
             Q(preferred_areas__province__id=post_province.id)
-        ).distinct()
+        ).exclude(id=instance.user.id).distinct()
 
         # Initialize Webhook once to reuse it in the loop
         webhook = Webhook()

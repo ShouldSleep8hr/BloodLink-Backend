@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import json
 from pathlib import Path
 
 from datetime import timedelta
@@ -273,7 +274,10 @@ SIMPLE_JWT = {
 # Google Cloud Storage Configuration
 # DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME', 'default-bucket-name')
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.getenv('GS_CREDENTIALS_PATH', os.path.join(BASE_DIR, 'bloodlinkadmin.json'))
-)
+
+credentials_json = os.getenv('GS_CREDENTIALS')
+credentials_json = credentials_json.replace('\\n', '\n')
+credentials_info = json.loads(credentials_json)
+GS_CREDENTIALS = service_account.Credentials.from_service_account_info(credentials_info)
+
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'  # Media URL for serving uploaded files

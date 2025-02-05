@@ -275,7 +275,7 @@ SIMPLE_JWT = {
 # DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME', 'default-bucket-name')
 
-credentials_json = os.getenv('GS_CREDENTIALS')
+credentials_json = os.getenv('GS_CREDENTIALS', 'default-gcs-credentials')
 # credentials_json = credentials_json.replace('\\n', '\n')
 # credentials_info = json.loads(credentials_json)
 GS_CREDENTIALS = service_account.Credentials.from_service_account_info(credentials_json)

@@ -142,6 +142,15 @@ class PostViewSet(viewsets.ModelViewSet):
         # Get posts that are still `show=True`
         queryset = Post.objects.filter(show=True).order_by('-created_on')
 
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+
+        # Filter posts by the authenticated user if logged in
+        # user = self.request.user
+        # if user.is_authenticated:
+        #     queryset = queryset.filter(user=user)
+
         # Apply the `limit` parameter if present
         limit = self.request.query_params.get('limit', None)
         if limit is not None:

@@ -275,20 +275,10 @@ SIMPLE_JWT = {
 # DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME', 'default-bucket-name')
 
-# gs_json_data = os.getenv("GS_CREDENTIALS")
-# if gs_json_data:
-#     gs_json_data = gs_json_data.replace("\\n", "\n")  # Ensure proper newline handling
-#     gs_json_data = gs_json_data.replace("\\", "\\\\")  # Escape all backslashes to ensure valid JSON
-
-#     # Parse the corrected JSON string
-#     gs_json_data = json.loads(gs_json_data)
-
-#     # Create credentials using the updated JSON
-#     GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gs_json_data)
-# else:
-#     raise ValueError("GS_CREDENTIALS environment variable is not set properly.")
-# gs_json_data = json.loads(gs_json_data)
+gs_json_data = os.getenv("GS_CREDENTIALS")
+gs_json_data = json.loads(gs_json_data)
+gs_json_data["private_key"] = gs_json_data["private_key"].replace("\\n", "\n")
 # print(gs_json_data)
-# GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gs_json_data)
+GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gs_json_data)
 
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'  # Media URL for serving uploaded files

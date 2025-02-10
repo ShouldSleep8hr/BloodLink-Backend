@@ -172,8 +172,8 @@ class UserAchievement(models.Model):
 class Event(models.Model):
     name = models.CharField(max_length=50, null=True, blank=False)
     description = models.TextField(null=True, blank=True)
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateField(null=True, blank=False)
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(null=True, blank=True)
 
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)

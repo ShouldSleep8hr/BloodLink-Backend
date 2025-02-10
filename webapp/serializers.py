@@ -7,10 +7,10 @@ class AchievementSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description']
 
 class UserAchievementSerializer(serializers.ModelSerializer):
-    achievement = AchievementSerializer()
+    achievement_name = serializers.CharField(source='achievement.name', read_only=True)
     class Meta:
         model = UserAchievement
-        fields = ['id', 'user', 'achievement', 'earned_at']
+        fields = ['id', 'user', 'achievement', 'achievement_name', 'earned_at']
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,10 +18,10 @@ class EventSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'start_date', 'end_date']
 
 class EventParticipantSerializer(serializers.ModelSerializer):
-    event = EventSerializer()
+    event_name = serializers.CharField(source='event.name', read_only=True)
     class Meta:
         model = EventParticipant
-        fields = ['id', 'user', 'event', 'joined_at']
+        fields = ['id', 'user', 'event', 'event_name', 'joined_at']
 
 class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:

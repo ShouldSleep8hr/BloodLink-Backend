@@ -30,7 +30,7 @@ import os
 
 class Webhook(APIView):
     # authentication_classes = [TokenAuthentication]  # Use token authentication
-    # permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
+    permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

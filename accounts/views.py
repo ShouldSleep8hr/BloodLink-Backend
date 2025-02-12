@@ -52,6 +52,7 @@ class LineLoginView(APIView):
         return redirect(line_login_url)
     
 class LineLoginCallbackView(APIView):
+    permission_classes = [permissions.AllowAny]
     def get(self, request, *args, **kwargs):
         code = request.query_params.get('code')
         state = request.query_params.get('state')

@@ -9,6 +9,8 @@ from accounts.models import Users
 from accounts.serializers import UserSerializer
 from webapp.models import DonationLocation, Post
 from django.db.models import Q
+from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -189,96 +191,108 @@ class Webhook(APIView):
 
     def handle_follow_event(self, event):
         user_id = event['source']['userId']
-        
-        display_name = self.get_line_display_name(user_id)
+
+        try:
+            # Check if the user exists in your Users model
+            user = Users.objects.get(line_user_id=user_id)
+            display_name = user.line_username
+        except ObjectDoesNotExist:
+            # If the user does not exist, you might want to skip or handle differently
+            return HttpResponse(status=204)  # No Content response if user not found
+        except Exception as e:
+            # Log unexpected errors
+            print(f"Unexpected error: {e}")
+            return HttpResponse(status=500)  # Internal Server Error
+
         channel = self.line_bot
-        
+
+        # Create or get LineChannelContact based on the user
         LineChannelContact.objects.get_or_create(
             channel=channel,
             contact_id=user_id,
             defaults={'display_name': display_name}
         )
 
-        # 1. Get the link token for this user
-        link_token = self.get_link_token(user_id)
+        return HttpResponse(status=200)
 
-        # 2. Send the linking URL to the user
-        if link_token:
-            linking_url = f"http://localhost:5173/link?linkToken={link_token}"
-            buttons_template = ButtonsTemplate(
-                title='ลิ้งแอคเคาท์',
-                text='กดเพื่อลิ้งแอคเคาท์',
-                actions=[
-                    URITemplateAction(
-                        label='ลิ้งแอคเคาท์',
-                        uri=linking_url
-                    )
-                ]
-            )
-            template_message = TemplateSendMessage(
-                alt_text='ลิ้งแอคเคาท์',
-                template=buttons_template
-            )
-            self.line_bot_api.push_message(user_id, template_message)
+    #     # 1. Get the link token for this user
+    #     link_token = self.get_link_token(user_id)
 
-    def get_link_token(self, user_id):
-        # Request the link token from the LINE platform
-        response = requests.post(
-            f"https://api.line.me/v2/bot/user/{user_id}/linkToken",
-            headers={'Authorization': f'Bearer {self.line_bot.channel_access_token}'}
-        )
-        if response.status_code == 200:
-            return response.json().get('linkToken')
-        return None
+    #     # 2. Send the linking URL to the user
+    #     if link_token:
+    #         linking_url = f"http://localhost:5173/link?linkToken={link_token}"
+    #         buttons_template = ButtonsTemplate(
+    #             title='ลิ้งแอคเคาท์',
+    #             text='กดเพื่อลิ้งแอคเคาท์',
+    #             actions=[
+    #                 URITemplateAction(
+    #                     label='ลิ้งแอคเคาท์',
+    #                     uri=linking_url
+    #                 )
+    #             ]
+    #         )
+    #         template_message = TemplateSendMessage(
+    #             alt_text='ลิ้งแอคเคาท์',
+    #             template=buttons_template
+    #         )
+    #         self.line_bot_api.push_message(user_id, template_message)
+
+    # def get_link_token(self, user_id):
+    #     # Request the link token from the LINE platform
+    #     response = requests.post(
+    #         f"https://api.line.me/v2/bot/user/{user_id}/linkToken",
+    #         headers={'Authorization': f'Bearer {self.line_bot.channel_access_token}'}
+    #     )
+    #     if response.status_code == 200:
+    #         return response.json().get('linkToken')
+    #     return None
     
-    def handle_account_link_event(self, event):
-        # Extract the necessary details from the event
-        line_user_id = event['source']['userId']
-        nonce = event['link']['nonce']
+    # def handle_account_link_event(self, event):
+    #     # Extract the necessary details from the event
+    #     line_user_id = event['source']['userId']
+    #     nonce = event['link']['nonce']
         
-        # Find the user in your system based on the nonce
-        try:
-            # Assuming you have a model that stores the nonce and user ID
-            nonce_mapping = NonceMapping.objects.get(nonce=nonce)
-            user = nonce_mapping.user  # Get the associated user
+    #     # Find the user in your system based on the nonce
+    #     try:
+    #         # Assuming you have a model that stores the nonce and user ID
+    #         nonce_mapping = NonceMapping.objects.get(nonce=nonce)
+    #         user = nonce_mapping.user  # Get the associated user
 
-            # Save the LINE user ID to the user's profile
-            user.line_user_id = line_user_id
-            user.save()
+    #         # Save the LINE user ID to the user's profile
+    #         user.line_user_id = line_user_id
+    #         user.save()
 
-            line_channel_contact = LineChannelContact.objects.get(contact_id=line_user_id)
-            line_channel_contact.user = user
-            line_channel_contact.save()
+    #         line_channel_contact = LineChannelContact.objects.get(contact_id=line_user_id)
+    #         line_channel_contact.user = user
+    #         line_channel_contact.save()
             
-            # Clean up the nonce mapping (optional)
-            nonce_mapping.delete()
+    #         # Clean up the nonce mapping (optional)
+    #         nonce_mapping.delete()
 
-            print(f"Linked LINE account {line_user_id} with user {user.email}")
+    #         print(f"Linked LINE account {line_user_id} with user {user.email}")
 
-        except NonceMapping.DoesNotExist:
-            print(f"Nonce {nonce} not found, unable to link account.")
+    #     except NonceMapping.DoesNotExist:
+    #         print(f"Nonce {nonce} not found, unable to link account.")
 
-
-
-    def get_line_display_name(self, user_id):
-        """
-        Call LINE API to get the display name of the user.
-        """
-        url = f"https://api.line.me/v2/bot/profile/{user_id}"
-        headers = {
-            "Authorization": f"Bearer {self.line_bot.channel_access_token}"
-        }
-        try:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                data = response.json()
-                return data.get("displayName", "Unknown User")  # Return the display name or a default
-            else:
-                print(f"Error fetching display name: {response.status_code} {response.text}")
-                return "Unknown User"
-        except Exception as e:
-            print(f"Exception occurred: {e}")
-            return "Unknown User"
+    # def get_line_display_name(self, user_id):
+    #     """
+    #     Call LINE API to get the display name of the user.
+    #     """
+    #     url = f"https://api.line.me/v2/bot/profile/{user_id}"
+    #     headers = {
+    #         "Authorization": f"Bearer {self.line_bot.channel_access_token}"
+    #     }
+    #     try:
+    #         response = requests.get(url, headers=headers)
+    #         if response.status_code == 200:
+    #             data = response.json()
+    #             return data.get("displayName", "Unknown User")  # Return the display name or a default
+    #         else:
+    #             print(f"Error fetching display name: {response.status_code} {response.text}")
+    #             return "Unknown User"
+    #     except Exception as e:
+    #         print(f"Exception occurred: {e}")
+    #         return "Unknown User"
         
     def send_location_request(self, reply_token):
         buttons_template = ButtonsTemplate(

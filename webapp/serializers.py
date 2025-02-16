@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from webapp.models import Post, DonationLocation, SubDistrict, District, Province, Region, Announcement, DonationHistory, PreferredArea, Achievement, UserAchievement, Event, EventParticipant
+from django.conf import settings
 
 class AchievementSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,9 +25,19 @@ class EventParticipantSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'event', 'event_name', 'joined_at']
 
 class AnnouncementSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Announcement
-        fields = ['id', 'title','content','reference', 'image', 'created_on', 'updated_on']
+        fields = ['id', 'title','content','reference', 'image', 'image_url', 'created_on', 'updated_on']
+    
+    def get_image_url(self, obj):
+        return self.build_public_url(obj.image) if obj.image else None
+
+    def build_public_url(self, image_field):
+        """Construct the public URL by removing query parameters."""
+        base_url = f"https://storage.googleapis.com/{settings.GS_BUCKET_NAME}/"
+        return f"{base_url}{image_field}"
 
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -116,12 +127,17 @@ class PostSerializer(serializers.ModelSerializer):
     
 class DonationHistorySerializer(serializers.ModelSerializer):
     location_name = serializers.CharField(source='location.name', read_only=True) 
-    donation_image = serializers.ImageField(required=False, allow_null=True)  # Optional image field
+    donor_card_image_url = serializers.SerializerMethodField()
+    donation_image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = DonationHistory
-        fields = ['id', 'user', 'donation_date', 'location', 'location_name', 'share_status', 'donor_card_image', 'donation_image', 'image_description', 'donation_point', 'donation_type', 'verify', 'created_on', 'updated_on']
-        read_only_fields = ['verify', 'created_on', 'updated_on']  # These fields are managed automatically
+        fields = [
+            'id', 'user', 'donation_date', 'location', 'location_name', 'share_status',
+            'donor_card_image', 'donor_card_image_url', 'donation_image', 'donation_image_url',
+            'image_description', 'donation_point', 'donation_type', 'verify', 'created_on', 'updated_on'
+        ]
+        read_only_fields = ['verify', 'created_on', 'updated_on']
 
     def validate(self, data):
         # Validate location name
@@ -140,6 +156,17 @@ class DonationHistorySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Directly create the donation history record
         return DonationHistory.objects.create(**validated_data)
+    
+    def get_donor_card_image_url(self, obj):
+        return self.build_public_url(obj.donor_card_image) if obj.donor_card_image else None
+
+    def get_donation_image_url(self, obj):
+        return self.build_public_url(obj.donation_image) if obj.donation_image else None
+
+    def build_public_url(self, image_field):
+        """Construct the public URL by removing query parameters."""
+        base_url = f"https://storage.googleapis.com/{settings.GS_BUCKET_NAME}/"
+        return f"{base_url}{image_field}"
     
 class PreferredAreaSerializer(serializers.ModelSerializer):
     district_name = serializers.CharField(source='district.name', read_only=True)

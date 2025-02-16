@@ -25,11 +25,11 @@ class Command(BaseCommand):
                         subdistrict_name = address.replace('ต.', '')
                     elif address.startswith('เขต'):
                         district_name = address.replace('เขต', '')
-                    elif address.startswith('เแขวง'):
-                        subdistrict_name = address.replace('เแขวง', '')
+                    elif address.startswith('แขวง'):
+                        subdistrict_name = address.replace('แขวง', '')
 
-                if subdistrict_name == 'ในเมือง':
-                    subdistrict_name = subdistrict_name + province_name
+                # if subdistrict_name == 'ในเมือง':
+                #     subdistrict_name = subdistrict_name + province_name
                 if district_name == 'เมือง':
                     district_name = district_name + province_name
                 

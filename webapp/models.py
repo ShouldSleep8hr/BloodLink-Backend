@@ -1,3 +1,5 @@
+import os
+import uuid
 from django.db import models
 from accounts.models import Users
 from django.utils import timezone
@@ -9,6 +11,21 @@ class GCSMediaStorage(GoogleCloudStorage):
     bucket_name = settings.GS_BUCKET_NAME
     location = ''  # To avoid creating folders
 
+def unique_upload_path(instance, filename, folder):
+    """Generate a unique file path inside a given folder."""
+    ext = os.path.splitext(filename)[1]  # Extract file extension
+    unique_filename = f"{uuid.uuid4()}{ext}"  # Generate unique filename
+    return f"{folder}/{unique_filename}"
+
+# Named functions to use in models (Django can serialize them)
+def donor_card_upload_path(instance, filename):
+    return unique_upload_path(instance, filename, "donor-card")
+
+def donation_image_upload_path(instance, filename):
+    return unique_upload_path(instance, filename, "donation")
+
+def announcement_image_upload_path(instance, filename):
+    return unique_upload_path(instance, filename, "announcement")
 
 facility_type_choice = (
     ('1','โรงพยาบาล'),
@@ -78,13 +95,13 @@ class DonationHistory(models.Model):
     share_status = models.BooleanField(default=False)
     
     donor_card_image = models.FileField(
-        upload_to="",
+        upload_to=donor_card_upload_path,
         storage=GCSMediaStorage(),
         blank=True,
         null=True
     )
     donation_image = models.FileField(
-        upload_to='',  # No subfolder creation
+        upload_to=donation_image_upload_path,
         storage=GCSMediaStorage(),  # Use the GCS storage backend for this field only
         blank=True,
         null=True
@@ -140,7 +157,7 @@ class Announcement(models.Model):
     content = models.TextField(null=True, blank=True)
     reference = models.CharField(max_length=200, null=True, blank=True)
     image = models.FileField(
-        upload_to='',  # No subfolder creation
+        upload_to=announcement_image_upload_path,
         storage=GCSMediaStorage(),  # Use the GCS storage backend for this field only
         blank=True,
         null=True

@@ -1,40 +1,10 @@
-# from rest_framework import serializers
-# from accounts.models import Users
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Users
-#         fields = ['id', 'email', 'password', 'first_name', 'last_name', 'birthdate']
-#         extra_kwargs = {
-#             'password': {'write_only': True},  # Hide password in the serialized output
-#             'email': {'required': True}        # Ensure email is required as it's the username field
-#         }
-
-#     def create(self, validated_data):
-#         # Create user and hash the password
-#         password = validated_data.pop('password', None)
-#         user = Users(**validated_data)
-#         if password:
-#             user.set_password(password)
-
-#         user.save()
-#         return user
-
-#     def update(self, instance, validated_data):
-#         # Handle user update, including password hash
-#         password = validated_data.pop('password', None)
-#         instance = super().update(instance, validated_data)
-#         if password:
-#             instance.set_password(password)
-#             instance.save()
-#         return instance
-
 from rest_framework import serializers
 from accounts.models import Users
+from webapp.models import PreferredArea
 from webapp.serializers import PreferredAreaSerializer
 
 class UserSerializer(serializers.ModelSerializer):
-    preferred_areas = PreferredAreaSerializer(many=True, read_only=True)
+    preferred_areas = PreferredAreaSerializer(many=True)
 
     class Meta:
         model = Users
@@ -49,10 +19,31 @@ class UserSerializer(serializers.ModelSerializer):
         user = Users.objects.create(**validated_data)
         return user
 
+    # def update(self, instance, validated_data):
+    #     # Update only line_user_id and email
+    #     for field, value in validated_data.items():
+    #         setattr(instance, field, value)
+    #     instance.save()
+    #     return instance
+    
     def update(self, instance, validated_data):
-        # Update only line_user_id and email
+        # Extract preferred areas if provided
+        preferred_areas_data = validated_data.pop('preferred_areas', None)
+
+        # Update preferred areas only if provided
+        if preferred_areas_data is not None:
+            if instance.preferred_areas.exists() and preferred_areas_data == []:
+                # Delete all if user sent an empty list
+                instance.preferred_areas.all().delete()
+            else:
+                # Update preferred areas
+                preferred_area_serializer = PreferredAreaSerializer()
+                preferred_area_serializer.update_preferred_areas(instance, preferred_areas_data)
+
+        # Update user fields
         for field, value in validated_data.items():
             setattr(instance, field, value)
         instance.save()
+
         return instance
 

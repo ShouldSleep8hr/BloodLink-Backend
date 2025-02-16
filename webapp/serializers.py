@@ -142,22 +142,72 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         return DonationHistory.objects.create(**validated_data)
     
 class PreferredAreaSerializer(serializers.ModelSerializer):
-    # subdistricts = SubDistrictSerializer(many=True, read_only=True)
-    # districts = DistrictSerializer(many=True, read_only=True)
-    # provinces = ProvinceSerializer(many=True, read_only=True)
-
-    # district_id = serializers.PrimaryKeyRelatedField(
-    #     queryset=District.objects.all(),
-    #     source='district',  # Maps to the ForeignKey field
-    #     write_only=True
-    # )
-
     district_name = serializers.CharField(source='district.name', read_only=True)
     province_name = serializers.CharField(source='province.name', read_only=True)
 
-    # district = DistrictSerializer()
-    # province = ProvinceSerializer()
     class Meta:
         model = PreferredArea
         fields = ['id', 'user', 'district', 'district_name', 'province', 'province_name']
         # fields = ['id', 'districts', 'provinces']
+
+    def validate(self, data):
+        # user = self.context["request"].user
+        district = data.get('district', None)
+        province = data.get('province')
+
+        # Ensure district belongs to the given province before saving
+        if district:
+            if district.province != province:
+                raise serializers.ValidationError({
+                    "district": "The selected district does not belong to the specified province."
+                })
+            
+        # Check for duplicate district (if district is not None)
+        # if district and PreferredArea.objects.filter(user=8, district=district).exists():
+        #     raise serializers.ValidationError({
+        #         "district": "You have already added this district to your preferred areas."
+        #     })
+
+        return data
+    
+    def update_preferred_areas(self, user, preferred_areas_data):
+        """
+        Update the user's preferred areas based on the new data.
+        - Update existing ones in order.
+        - Delete extra ones if the new list is shorter.
+        - Create new ones if the new list is longer.
+        """
+        existing_areas = list(user.preferred_areas.all())
+        num_existing = len(existing_areas)
+        num_new = len(preferred_areas_data)
+
+        if num_existing == 0:
+            # No existing preferred areas, just create new ones
+            PreferredArea.objects.bulk_create([
+                PreferredArea(user=user, district=area.get('district', None), province=area['province'])
+                for area in preferred_areas_data
+            ])
+            return
+
+        # Step 1: Update existing preferred areas
+        for i in range(min(num_existing, num_new)):
+            area = existing_areas[i]
+            area_data = preferred_areas_data[i]
+
+            area.district = area_data.get('district', None)
+            area.province = area_data['province']
+            area.save()
+
+        # Step 2: Delete remaining old areas if new data has fewer items
+        if num_existing > num_new:
+            for i in range(num_new, num_existing):
+                existing_areas[i].delete()
+
+        # Step 3: Create new preferred areas if needed
+        for i in range(num_existing, num_new):
+            area_data = preferred_areas_data[i]
+            PreferredArea.objects.create(
+                user = user,
+                district = area_data.get('district', None),
+                province = area_data['province']
+            )

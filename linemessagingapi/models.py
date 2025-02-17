@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import Users
 from django.utils import timezone
+import secrets
 
 class WebhookRequest(models.Model):
     method = models.CharField(max_length=10)  # Stores the request method (e.g., POST, GET)
@@ -43,9 +44,8 @@ class LineChannelContact(models.Model):
 #     created_on = models.DateTimeField(default=timezone.now)
 
 class NonceMapping(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, blank=True, null=True,)
-    nonce = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    nonce = models.CharField(max_length=255, unique=True, default=secrets.token_urlsafe)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Nonce for {self.user.email}"
+        return self.nonce

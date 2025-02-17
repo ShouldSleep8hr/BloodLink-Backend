@@ -99,11 +99,21 @@ class LineLoginCallbackView(APIView):
 
         try:
             decoded_token = decode(id_token, options={"verify_signature": False})  # Add verification in production
+            nonce = decoded_token.get("nonce")
             line_user_id = decoded_token.get('sub')
             email = decoded_token.get("email")
-        except (ExpiredSignatureError, InvalidTokenError) as e:
-            return Response({'error': 'Invalid or expired ID token'}, status=status.HTTP_400_BAD_REQUEST)
 
+            if not NonceMapping.objects.filter(nonce=nonce).exists():
+                return Response({"error": "Invalid nonce"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # If valid, delete it to prevent reuse
+            NonceMapping.objects.filter(nonce=nonce).delete()
+
+        except (ExpiredSignatureError) as e:
+            return Response({'error': 'Expired ID token'}, status=status.HTTP_400_BAD_REQUEST)
+        except (InvalidTokenError) as e:
+            return Response({'error': 'Invalid ID token'}, status=status.HTTP_400_BAD_REQUEST)
+        
         if not line_user_id:
             return Response({'error': 'LINE user ID not found in token'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -256,26 +266,87 @@ class LineLoginCallbackView(APIView):
 
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+# class LogoutView(APIView):
+#     # permission_classes = [permissions.IsAuthenticated]
+
+#     def post(self, request):
+#         try:
+#             refresh_token = request.data["refresh_token"]
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()
+
+#             return Response(status=status.HTTP_205_RESET_CONTENT)
+#         except Exception as e:
+#             return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+# class LogoutAllView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+#     # authentication_classes = [TokenAuthentication]
+
+#     def post(self, request):
+#         tokens = OutstandingToken.objects.filter(user_id=request.user.id)
+#         for token in tokens:
+#             t, _ = BlacklistedToken.objects.get_or_create(token=token)
+
+#         return Response(status=status.HTTP_205_RESET_CONTENT)
+
+class RefreshTokenView(APIView):
+    def post(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+
+        if not refresh_token:
+            return Response({"error": "Refresh token missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+
+            response = Response({"message": "Token refreshed"}, status=status.HTTP_200_OK)
+            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="Lax")
+
+            return response
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class LogoutView(APIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         try:
-            refresh_token = request.data["refresh_token"]
+            # Get refresh token from HttpOnly Cookie
+            refresh_token = request.COOKIES.get("refresh_token")
+
+            if not refresh_token:
+                return Response({"error": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
+
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            return Response(status=status.HTTP_205_RESET_CONTENT)
+            # Clear cookies
+            response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+
+            return response
+
         except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class LogoutAllView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    # authentication_classes = [TokenAuthentication]
 
     def post(self, request):
-        tokens = OutstandingToken.objects.filter(user_id=request.user.id)
-        for token in tokens:
-            t, _ = BlacklistedToken.objects.get_or_create(token=token)
+        try:
+            tokens = OutstandingToken.objects.filter(user_id=request.user.id)
+            for token in tokens:
+                BlacklistedToken.objects.get_or_create(token=token)
 
-        return Response(status=status.HTTP_205_RESET_CONTENT)
+            # Clear cookies
+            response = Response({"message": "Logged out from all devices"}, status=status.HTTP_205_RESET_CONTENT)
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+
+            return response
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

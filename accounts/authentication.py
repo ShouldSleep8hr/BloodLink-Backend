@@ -7,7 +7,6 @@ class CookieJWTAuthentication(JWTAuthentication):
         access_token = request.COOKIES.get("access_token")  # Read from cookie
 
         if not access_token:
-            print("say hi to nekoham")
             return None  # No token found
 
         try:

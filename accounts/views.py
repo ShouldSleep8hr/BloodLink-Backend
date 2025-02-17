@@ -163,8 +163,10 @@ class LineLoginCallbackView(APIView):
 
             # Redirect response with HttpOnly cookies
             response = HttpResponseRedirect('http://localhost:5173/user-login')
-            response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Strict", max_age=3600)
-            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Strict", max_age=86400)
+            # response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Strict", max_age=3600)
+            # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Strict", max_age=86400)
+            response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Lax", max_age=3600)
+            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Lax", max_age=86400)
             return response
         except Exception as e:
             return Response({'error': 'Failed to update or create user', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

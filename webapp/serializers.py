@@ -23,9 +23,18 @@ class UserAchievementSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'achievement', 'achievement_name', 'earned_at']
 
 class EventSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'start_date', 'end_date']
+        fields = ['id', 'name', 'image', 'image_url', 'description', 'start_date', 'end_date']
+
+    def get_image_url(self, obj):
+        return self.build_public_url(obj.image) if obj.image else None
+
+    def build_public_url(self, image_field):
+        """Construct the public URL by removing query parameters."""
+        base_url = f"https://storage.googleapis.com/{settings.GS_BUCKET_NAME}/"
+        return f"{base_url}{image_field}"
 
 class EventParticipantSerializer(serializers.ModelSerializer):
     event_name = serializers.CharField(source='event.name', read_only=True)

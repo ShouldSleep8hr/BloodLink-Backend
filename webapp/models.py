@@ -30,6 +30,9 @@ def announcement_image_upload_path(instance, filename):
 def achievement_image_upload_path(instance, filename):
     return unique_upload_path(instance, filename, "achievement")
 
+def event_image_upload_path(instance, filename):
+    return unique_upload_path(instance, filename, "event")
+
 facility_type_choice = (
     ('1','โรงพยาบาล'),
     ('2','ศูนย์กาชาด'),
@@ -199,6 +202,12 @@ class Event(models.Model):
     description = models.TextField(null=True, blank=True)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(null=True, blank=True)
+    image = models.FileField(
+        upload_to=event_image_upload_path,
+        storage=GCSMediaStorage(),  # Use the GCS storage backend for this field only
+        blank=True,
+        null=True
+    )
 
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)

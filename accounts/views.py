@@ -162,7 +162,7 @@ class LineLoginCallbackView(APIView):
             access_token = str(refresh.access_token)
 
             # Redirect response with HttpOnly cookies
-            response = HttpResponseRedirect('http://localhost:5173')
+            response = HttpResponseRedirect('http://localhost:5173/user-login')
             response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="Strict", max_age=3600)
             response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="Strict", max_age=86400)
             return response

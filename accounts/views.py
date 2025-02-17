@@ -24,11 +24,11 @@ from linemessagingapi.models import NonceMapping
 import os
 
 class UserViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-
     queryset = Users.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Users.objects.filter(user=self.request.user)
 
 class LineLoginView(APIView):
     permission_classes = [permissions.AllowAny]

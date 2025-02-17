@@ -27,7 +27,7 @@ from linemessagingapi.views import Webhook
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
+router.register(r'auth/user', UserViewSet)
 router.register(r'webapp/announcement',Announcement_viewset)
 router.register(r'webapp/donation-history',DonationHistoryViewSet)
 router.register(r'webapp/donation-location', DonationLocationViewSet)

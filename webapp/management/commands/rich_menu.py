@@ -1,13 +1,15 @@
 import requests
 from django.core.management.base import BaseCommand
 from linemessagingapi.models import LineChannel
+import os
+from django.conf import settings
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         line_bot = LineChannel.objects.get(id=1)
         channel_access_token = line_bot.channel_access_token
 
-        # 1
+        # # 1
         # url = "https://api.line.me/v2/bot/richmenu"
         # headers = {
         #     "Authorization": f"Bearer {channel_access_token}",
@@ -32,7 +34,7 @@ class Command(BaseCommand):
         #             "action": {
         #                 "type": "uri",
         #                 "label": "Tap area A",
-        #                 "uri": "https://developers.line.biz/en/news/"
+        #                 "uri": "https://kmitldev-blood-link.netlify.app/line/donation-submission"
         #             }
         #         },
         #         {
@@ -43,9 +45,9 @@ class Command(BaseCommand):
         #                 "height": 404
         #             },
         #             "action": {
-        #                 "type": "uri",
+        #                 "type": "message",
         #                 "label": "Tap area B",
-        #                 "uri": "https://lineapiusecase.com/en/top.html"
+        #                 "text": "บริจาคโลหิตใกล้ฉัน"
         #             }
         #         },
         #         {
@@ -58,7 +60,7 @@ class Command(BaseCommand):
         #             "action": {
         #                 "type": "uri",
         #                 "label": "Tap area C",
-        #                 "uri": "https://techblog.lycorp.co.jp/en/"
+        #                 "uri": "https://kmitldev-blood-link.netlify.app/profile/1"
         #             }
         #         },
         #         {
@@ -71,7 +73,7 @@ class Command(BaseCommand):
         #             "action": {
         #                 "type": "uri",
         #                 "label": "Tap area D",
-        #                 "uri": "https://developers.line.biz/en/news/"
+        #                 "uri": "https://kmitldev-blood-link.netlify.app"
         #             }
         #         }
         #     ]
@@ -79,13 +81,13 @@ class Command(BaseCommand):
 
         # response = requests.post(url, headers=headers, json=data)
 
+        # rich_menu_id = response.json().get("richMenuId")
         # print(f"Status Code: {response.status_code}")
-        # print(f"Response: {response.text}")
+        # print(f"Response: {rich_menu_id}")
 
 
         # 2
-        # rich_menu_id = "richmenu-3939d46831981741ffcd9e7262bde7c5"  # Replace with your richMenuId
-        # image_path = "D:/Y4/BloodLink2/blooddonation-backend/LINE rich menu.png"  # Replace with your image file path
+        # image_path = os.path.join(settings.BASE_DIR, "static", "LINE rich menu.png")
 
         # url = f"https://api-data.line.me/v2/bot/richmenu/{rich_menu_id}/content"
         # headers = {
@@ -101,13 +103,12 @@ class Command(BaseCommand):
 
 
         # 3
-        rich_menu_id = "richmenu-3939d46831981741ffcd9e7262bde7c5"  # Replace with your richMenuId
-        url = f"https://api.line.me/v2/bot/user/all/richmenu/{rich_menu_id}"
-        headers = {
-            "Authorization": f"Bearer {channel_access_token}"
-        }
+        # url = f"https://api.line.me/v2/bot/user/all/richmenu/{rich_menu_id}"
+        # headers = {
+        #     "Authorization": f"Bearer {channel_access_token}"
+        # }
 
-        response = requests.post(url, headers=headers)
+        # response = requests.post(url, headers=headers)
 
-        print(f"Status Code: {response.status_code}")
-        print(f"Response: {response.text}")
+        # print(f"Status Code: {response.status_code}")
+        # print(f"Response: {response.text}")

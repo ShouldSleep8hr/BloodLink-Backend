@@ -27,6 +27,9 @@ def donation_image_upload_path(instance, filename):
 def announcement_image_upload_path(instance, filename):
     return unique_upload_path(instance, filename, "announcement")
 
+def achievement_image_upload_path(instance, filename):
+    return unique_upload_path(instance, filename, "achievement")
+
 facility_type_choice = (
     ('1','โรงพยาบาล'),
     ('2','ศูนย์กาชาด'),
@@ -171,7 +174,12 @@ class Announcement(models.Model):
 class Achievement(models.Model):
     name = models.CharField(max_length=50, null=True, blank=False)
     description = models.TextField(null=True, blank=True)
-    # image = models.ImageField(upload_to='achievement_images/', null=True, blank=True)
+    image = models.FileField(
+        upload_to=achievement_image_upload_path,
+        storage=GCSMediaStorage(),  # Use the GCS storage backend for this field only
+        blank=True,
+        null=True
+    )
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)
 

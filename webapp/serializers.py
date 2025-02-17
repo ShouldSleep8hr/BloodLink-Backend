@@ -3,9 +3,18 @@ from webapp.models import Post, DonationLocation, SubDistrict, District, Provinc
 from django.conf import settings
 
 class AchievementSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
     class Meta:
         model = Achievement
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'image', 'image_url' 'description']
+
+    def get_image_url(self, obj):
+        return self.build_public_url(obj.image) if obj.image else None
+
+    def build_public_url(self, image_field):
+        """Construct the public URL by removing query parameters."""
+        base_url = f"https://storage.googleapis.com/{settings.GS_BUCKET_NAME}/"
+        return f"{base_url}{image_field}"
 
 class UserAchievementSerializer(serializers.ModelSerializer):
     achievement_name = serializers.CharField(source='achievement.name', read_only=True)

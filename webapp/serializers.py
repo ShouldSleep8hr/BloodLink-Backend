@@ -6,7 +6,7 @@ class AchievementSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     class Meta:
         model = Achievement
-        fields = ['id', 'name', 'image', 'image_url' 'description']
+        fields = ['id', 'name', 'image', 'image_url', 'description']
 
     def get_image_url(self, obj):
         return self.build_public_url(obj.image) if obj.image else None

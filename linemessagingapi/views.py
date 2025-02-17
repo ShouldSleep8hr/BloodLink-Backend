@@ -210,6 +210,7 @@ class Webhook(APIView):
         LineChannelContact.objects.get_or_create(
             channel=channel,
             contact_id=user_id,
+            user = user,
             defaults={'display_name': display_name}
         )
 

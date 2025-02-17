@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 urlpatterns = [
     path('login/', LineLoginView.as_view(), name='line_login'),
     path('callback/', LineLoginCallbackView.as_view(), name='line_callback'),
-    # path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('jwt/create/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('login/', CustomLoginView.as_view(), name='token_obtain_pair'),
     # path('login/<str:linkToken>/', CustomLoginView.as_view(), name='link_token_login'),
     path('refresh/', RefreshTokenView.as_view(), name='token_refresh'),

@@ -308,23 +308,44 @@ class RefreshTokenView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+# class LogoutView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def post(self, request):
+#         try:
+#             # Get refresh token from HttpOnly Cookie
+#             refresh_token = request.COOKIES.get("refresh_token")
+
+#             if not refresh_token:
+#                 return Response({"error": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()
+
+#             # Clear cookies
+#             response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
+#             response.delete_cookie("access_token")
+#             response.delete_cookie("refresh_token")
+
+#             return response
+
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 class LogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         try:
-            # Get refresh token from HttpOnly Cookie
-            refresh_token = request.COOKIES.get("refresh_token")
+            refresh_token = request.COOKIES.get("refresh_token")  # Get refresh token from cookie
 
             if not refresh_token:
                 return Response({"error": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
 
             token = RefreshToken(refresh_token)
-            token.blacklist()
+            token.blacklist()  # Blacklist refresh token
 
-            # Clear cookies
             response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
-            response.delete_cookie("access_token")
+            response.delete_cookie("access_token")  # Remove tokens from cookies
             response.delete_cookie("refresh_token")
 
             return response
@@ -333,7 +354,6 @@ class LogoutView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutAllView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         try:

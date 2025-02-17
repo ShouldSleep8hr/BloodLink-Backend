@@ -47,6 +47,7 @@ CORS_ALLOWED_ORIGINS = [
     # 'https://secretly-coherent-lacewing.ngrok-free.app', # Ngrok or any other domain used for tunneling
     'https://bloodlink.up.railway.app',
     'https://netlify-fix--kmitldev-blood-link.netlify.app',
+    'https://kmitldev-blood-link.netlify.app',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -68,6 +69,7 @@ CSRF_TRUSTED_ORIGINS = [
     # 'https://secretly-coherent-lacewing.ngrok-free.app',
     'https://bloodlink.up.railway.app',
     'https://netlify-fix--kmitldev-blood-link.netlify.app',
+    'https://kmitldev-blood-link.netlify.app',
 ]
 # Ensure CSRF cookie is set properly in HTTPS environments
 # CSRF_COOKIE_SAMESITE = None  # Only for development

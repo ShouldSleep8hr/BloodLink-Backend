@@ -1,4 +1,7 @@
+from django.http import HttpResponseRedirect
 import requests
+from django.core.cache import cache
+
 from accounts.models import Users
 from rest_framework import permissions, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -50,7 +53,7 @@ class LineLoginView(APIView):
         )
         
         return redirect(line_login_url)
-    
+
 class LineLoginCallbackView(APIView):
     permission_classes = [permissions.AllowAny]
     def get(self, request, *args, **kwargs):
@@ -119,6 +122,7 @@ class LineLoginCallbackView(APIView):
             picture_url = None
 
         try:
+            # uploaded_url = self.upload_profile_picture_to_gcs(picture_url)
             # Check if user exists, update profile picture if needed
             user, created = Users.objects.update_or_create(
                 email=email,
@@ -130,19 +134,45 @@ class LineLoginCallbackView(APIView):
             )
 
             # Generate JWT tokens
-            refresh = RefreshToken.for_user(user)
-            tokens = { 'refresh': str(refresh), 'access': str(refresh.access_token), }
+            # refresh = RefreshToken.for_user(user)
+            # tokens = { 'refresh': str(refresh), 'access': str(refresh.access_token), }
 
-            return Response({
-                'message': 'User logged in' if not created else 'User registered successfully',
-                'user_id': user.id,
-                'user_email': user.email,
-                'line_username': user.line_username,
-                'profile_picture': user.profile_picture,
-                'tokens': tokens,
-            }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+            # return Response({
+            #     'message': 'User logged in' if not created else 'User registered successfully',
+            #     'user_id': user.id,
+            #     'user_email': user.email,
+            #     'line_username': user.line_username,
+            #     'profile_picture': user.profile_picture,
+            #     'tokens': tokens,
+            # }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            # Redirect response with HttpOnly cookies
+            response = HttpResponseRedirect('http://localhost:5173')
+            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="Strict", max_age=3600)
+            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="Strict", max_age=86400)
+            return response
         except Exception as e:
             return Response({'error': 'Failed to update or create user', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # def upload_profile_picture_to_gcs(self, temp_url):
+    #     """Download image from temp_url and upload it to GCS using Django's storage."""
+    #     response = requests.get(temp_url)
+        
+    #     if response.status_code == 200:
+    #         file_extension = temp_url.split('.')[-1].split('?')[0]  # Extract file extension
+    #         unique_filename = f"profile_pictures/{uuid.uuid4().hex}.{file_extension}"
+
+    #         # Save file using Django's storage system
+    #         file_obj = ContentFile(response.content)
+    #         file_path = default_storage.save(unique_filename, file_obj)
+
+    #         return default_storage.url(file_path)  # Return public URL of uploaded image
+        
+    #     return None
 
 # class CustomLoginView(TokenObtainPairView):
 #     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view

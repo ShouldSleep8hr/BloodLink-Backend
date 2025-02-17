@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from rest_framework.decorators import action
 
 from accounts.serializers import UserSerializer
 
@@ -24,11 +25,11 @@ from linemessagingapi.models import NonceMapping
 import os
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = Users.objects.all()
-    serializer_class = UserSerializer
-
-    def get_queryset(self):
-        return Users.objects.filter(user=self.request.user)
+    @action(detail=False, methods=['get'])
+    def profile(self, request):
+        """Returns the logged-in user's profile information"""
+        serializer = UserSerializer(request.user)  # Serialize the logged-in user
+        return Response(serializer.data)
 
 class LineLoginView(APIView):
     permission_classes = [permissions.AllowAny]

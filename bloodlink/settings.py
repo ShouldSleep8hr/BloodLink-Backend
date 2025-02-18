@@ -48,6 +48,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://bloodlink.up.railway.app',
     'https://netlify-fix--kmitldev-blood-link.netlify.app',
     'https://kmitldev-blood-link.netlify.app',
+    'https://hare-trusty-boa.ngrok-free.app',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -70,6 +71,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://bloodlink.up.railway.app',
     'https://netlify-fix--kmitldev-blood-link.netlify.app',
     'https://kmitldev-blood-link.netlify.app',
+    'https://hare-trusty-boa.ngrok-free.app',
 ]
 # Ensure CSRF cookie is set properly in HTTPS environments
 # CSRF_COOKIE_SAMESITE = None  # Only for development

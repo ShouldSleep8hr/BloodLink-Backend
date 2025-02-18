@@ -19,28 +19,37 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 
-from accounts.views import UserViewSet
-from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, Announcement_viewset, DonationHistoryViewSet, Achievement_viewset, UserAchievement_viewset, Event_viewset, EventParticipant_viewset, PreferredArea_viewset
+from accounts.views import UserViewSet, UserProfileViewSet
+from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, AnnouncementViewset, DonationHistoryViewSet, UserDonationHistoryViewSet, AchievementViewset, UserAchievementViewset, EventViewset, EventParticipantViewset, UserEventParticipantViewset, PreferredAreaViewset
 
 from linemessagingapi.views import Webhook
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.DefaultRouter()
-router.register(r'user', UserViewSet, basename='user')
-router.register(r'webapp/announcement',Announcement_viewset)
+router.register(r'users', UserViewSet)
+router.register(r'user/profile', UserProfileViewSet, basename='user-profile')
+
+router.register(r'webapp/announcement',AnnouncementViewset)
+
 router.register(r'webapp/donation-history',DonationHistoryViewSet)
+router.register(r'user/donation-history',UserDonationHistoryViewSet, basename='user-donation-history')
+
 router.register(r'webapp/donation-location', DonationLocationViewSet)
 router.register(r'webapp/subdistrict', SubDistrictViewSet)
 router.register(r'webapp/district', DistrictViewSet)
 router.register(r'webapp/province', ProvinceViewSet)
 router.register(r'webapp/region', RegionViewSet)
 router.register(r'webapp/post', PostViewSet)
-router.register(r'webapp/achievement', Achievement_viewset)
-router.register(r'webapp/user-achievement', UserAchievement_viewset)
-router.register(r'webapp/event', Event_viewset)
-router.register(r'webapp/event-participant', EventParticipant_viewset)
-router.register(r'webapp/preferred-area', PreferredArea_viewset)
+
+router.register(r'webapp/achievement', AchievementViewset)
+router.register(r'user/user-achievement', UserAchievementViewset, basename='user-achievement')
+
+router.register(r'webapp/event', EventViewset)
+router.register(r'webapp/event-participant', EventParticipantViewset)
+router.register(r'user/event-participant', UserEventParticipantViewset, basename='user-event-participant')
+
+router.register(r'webapp/preferred-area', PreferredAreaViewset)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

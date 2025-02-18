@@ -19,50 +19,57 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'paginator'  # Users can set ?paginator=2 to get 2 results per page
     max_page_size = 100  # Optionally limit the maximum number of results per page
 
-class PreferredArea_viewset(viewsets.ModelViewSet):
+class PreferredAreaViewset(viewsets.ModelViewSet):
     queryset = PreferredArea.objects.all()
     serializer_class = PreferredAreaSerializer
 
     authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]
 
-class Achievement_viewset(viewsets.ModelViewSet):
+class AchievementViewset(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
 
-    authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]
 
-class UserAchievement_viewset(viewsets.ModelViewSet):
+# class UserAchievementViewset(viewsets.ModelViewSet):
+#     queryset = UserAchievement.objects.all()
+#     serializer_class = UserAchievementSerializer
+
+#     permission_classes = [permissions.AllowAny]
+
+#     def get_queryset(self):
+#         queryset = super().get_queryset()
+#         user_id = self.request.query_params.get('user')
+#         achievement_id = self.request.query_params.get('achievement')
+#         if user_id:
+#             queryset = queryset.filter(user_id=user_id)
+#         if achievement_id:
+#             queryset = queryset.filter(achievement_id=achievement_id)
+#         return queryset
+    
+class UserAchievementViewset(viewsets.ModelViewSet):
     queryset = UserAchievement.objects.all()
     serializer_class = UserAchievementSerializer
-
-    authentication_classes = [TokenAuthentication]  # Use token authentication
-    permission_classes = [permissions.AllowAny]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        user_id = self.request.query_params.get('user')
-        achievement_id = self.request.query_params.get('achievement')
-        if user_id:
-            queryset = queryset.filter(user_id=user_id)
-        if achievement_id:
-            queryset = queryset.filter(achievement_id=achievement_id)
+        queryset = queryset.filter(user=self.request.user)
         return queryset
 
-class Event_viewset(viewsets.ModelViewSet):
+class EventViewset(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
     authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]
 
-class EventParticipant_viewset(viewsets.ModelViewSet):
+class EventParticipantViewset(viewsets.ModelViewSet):
     queryset = EventParticipant.objects.all()
     serializer_class = EventParticipantSerializer
 
-    authentication_classes = [TokenAuthentication]  # Use token authentication
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAdminUser]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -73,8 +80,18 @@ class EventParticipant_viewset(viewsets.ModelViewSet):
         if event_id:
             queryset = queryset.filter(event_id=event_id)
         return queryset
+    
+class UserEventParticipantViewset(viewsets.ModelViewSet):
+    queryset = EventParticipant.objects.all()
+    serializer_class = EventParticipantSerializer
+    # permission_classes = [permissions.IsAuthenticated]
 
-class Announcement_viewset(viewsets.ModelViewSet):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        return queryset
+
+class AnnouncementViewset(viewsets.ModelViewSet):
     queryset = Announcement.objects.all()
     serializer_class = AnnouncementSerializer
 
@@ -166,10 +183,7 @@ class PostViewSet(viewsets.ModelViewSet):
 #         serializer.save()  # This will call the create method in the serializer
 
 class DonationHistoryViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]  # Use token authentication
-    # permission_classes = [permissions.IsAuthenticated]  # Ensure the user is authenticated
-    permission_classes = [permissions.AllowAny] 
-
+    permission_classes = [permissions.IsAdminUser] 
     queryset = DonationHistory.objects.all()
     serializer_class = DonationHistorySerializer
     pagination_class = CustomPagination  # Set the custom pagination
@@ -179,6 +193,16 @@ class DonationHistoryViewSet(viewsets.ModelViewSet):
         user_id = self.request.query_params.get('user')
         if user_id:
             queryset = queryset.filter(user_id=user_id)
+        return queryset
+    
+class UserDonationHistoryViewSet(viewsets.ModelViewSet):
+    queryset = DonationHistory.objects.all()
+    serializer_class = DonationHistorySerializer
+    # permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
         return queryset
 
     # def get_queryset(self):

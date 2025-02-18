@@ -25,11 +25,33 @@ from linemessagingapi.models import NonceMapping
 import os
 
 class UserViewSet(viewsets.ModelViewSet):
-    @action(detail=False, methods=['get'])
-    def profile(self, request):
-        """Returns the logged-in user's profile information"""
-        serializer = UserSerializer(request.user)  # Serialize the logged-in user
+    queryset = Users.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+class UserProfileViewSet(viewsets.ViewSet):
+    """Handles user profile viewing and updating."""
+    # permission_classes = [permissions.IsAuthenticated]  # Must be logged in
+
+    def retrieve(self, request):
+        """GET /profile/ → Returns the logged-in user's profile."""
+        serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+    def partial_update(self, request):
+        """PATCH /profile/ → Allows user to update their own profile."""
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # @action(detail=False, methods=['get'])
+    # @action(detail=False) # detail=False so dont need id in parameter
+    # def profile(self, request): # /user/profile
+    #     """Returns the logged-in user's profile information"""
+    #     serializer = UserSerializer(request.user)  # Serialize the logged-in user
+    #     return Response(serializer.data)
 
 class LineLoginView(APIView):
     permission_classes = [permissions.AllowAny]

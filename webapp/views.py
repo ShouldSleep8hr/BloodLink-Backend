@@ -110,28 +110,24 @@ class DonationLocationViewSet(viewsets.ModelViewSet):
         return queryset
 
 class SubDistrictViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
     queryset = SubDistrict.objects.all()
     serializer_class = SubDistrictSerializer
 
 class DistrictViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
 
 class ProvinceViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
     queryset = Province.objects.all()
     serializer_class = ProvinceSerializer
 
 class RegionViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
     
     queryset = Region.objects.all()
@@ -177,18 +173,13 @@ class PostViewSet(viewsets.ModelViewSet):
 #     def perform_create(self, serializer):
 #         serializer.save()  # This will call the create method in the serializer
 
-class DonationHistoryViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAdminUser] 
-    queryset = DonationHistory.objects.all()
+class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny] 
     serializer_class = DonationHistorySerializer
-    pagination_class = CustomPagination  # Set the custom pagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        user_id = self.request.query_params.get('user')
-        if user_id:
-            queryset = queryset.filter(user_id=user_id)
-        return queryset
+        return DonationHistory.objects.filter(verify=True, share_status=True).order_by('-created_on')
     
 class UserDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DonationHistorySerializer

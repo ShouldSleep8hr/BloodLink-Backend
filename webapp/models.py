@@ -83,9 +83,12 @@ class DonationLocation(models.Model):
     contact = models.CharField(max_length=200, null=True, blank=True) #still thinking number or email
     # facility_type = models.CharField(max_length=50, null=True, blank=True) #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
     facility_type = models.CharField(max_length=50, null=True, blank=True, choices=facility_type_choice, default='1') #โรงพยาบาล, ศูนย์กาชาด, หน่วยรับบริจาคเคลื่อนที่
-    available_date = models.DateTimeField(null=True, blank=True) #สำหรับหน่วยรับบริจาคเคลื่อนที่
+    
+    started_date = models.DateField(null=True, blank=True) #สำหรับหน่วยรับบริจาคเคลื่อนที่
+    due_date = models.DateField(null=True, blank=True) #สำหรับหน่วยรับบริจาคเคลื่อนที่
     opening_time = models.TimeField(null=True, blank=True)
     closing_time = models.TimeField(null=True, blank=True)
+
     googlemap = models.CharField(max_length=200, null=True, blank=True) #googlemap link
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)

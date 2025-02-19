@@ -199,6 +199,14 @@ class UserPostViewSet(viewsets.ModelViewSet):
             return Response({"error": "You do not have permission to delete this post."}, status=status.HTTP_403_FORBIDDEN)
         instance.delete()
 
+    @action(detail=True, methods=["post"])
+    def interest(self, request, pk=None):
+        """Allow users to press interest a post."""
+        post = self.get_object()
+        post.number_interest += 1
+        post.save()
+        return Response({"message": "Post interest successfully!"}, status=200)
+
 class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny] 
     serializer_class = DonationHistorySerializer

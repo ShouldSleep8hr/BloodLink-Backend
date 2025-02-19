@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
 
 from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, AnnouncementSerializer, DonationHistorySerializer, AchievementSerializer, UserAchievementSerializer, EventSerializer, EventParticipantSerializer, PreferredAreaSerializer
 
@@ -48,15 +49,17 @@ class AchievementViewset(viewsets.ModelViewSet):
 #             queryset = queryset.filter(achievement_id=achievement_id)
 #         return queryset
     
-class UserAchievementViewset(viewsets.ModelViewSet):
+class UserAchievementViewset(viewsets.ViewSet):
     queryset = UserAchievement.objects.all()
     serializer_class = UserAchievementSerializer
     # permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.filter(user=self.request.user)
-        return queryset
+    @action(detail=False, methods=["get"])
+    def achievements(self, request):
+        """GET /user/achievements/ → Returns logged-in user's achievements"""
+        queryset = UserAchievement.objects.filter(user=request.user)
+        serializer = UserAchievementSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 class EventViewset(viewsets.ModelViewSet):
     queryset = Event.objects.all()

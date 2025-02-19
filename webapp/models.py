@@ -99,6 +99,7 @@ class DonationHistory(models.Model):
     donation_date = models.DateTimeField("donation date", null=True, blank=True)
     location = models.ForeignKey(DonationLocation, on_delete=models.CASCADE)
     share_status = models.BooleanField(default=False)
+    number_like = models.IntegerField(default=0)
     
     donor_card_image = models.FileField(
         upload_to=donor_card_upload_path,
@@ -131,8 +132,8 @@ class Post(models.Model):
     due_date = models.DateTimeField("due date", null=True, blank=True)
     detail = models.TextField(max_length=200, null=True, blank=True)
     contact = models.CharField(max_length=200, null=True, blank=True) #might add User.contact, still thinking number or email
-    number_interest = models.IntegerField(null=True, blank=True)
-    number_donor = models.IntegerField(null=True, blank=True)
+    number_interest = models.IntegerField(default=0)
+    number_donor = models.IntegerField(default=0)
     show = models.BooleanField(default=True)
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)

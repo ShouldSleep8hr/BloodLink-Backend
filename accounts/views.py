@@ -29,20 +29,20 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
 
-class UserProfileViewSet(viewsets.ViewSet):
-    """Handles user profile viewing and updating."""
-    # permission_classes = [permissions.IsAuthenticated]  # Must be logged in
+class UserProfileViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
 
-    @action(detail=False)
-    def retrieve(self, request):
+    def get_queryset(self):
+        return Users.objects.filter(id=self.request.user.id)
+
+    def retrieve(self, request, *args, **kwargs):
         """GET /profile/ → Returns the logged-in user's profile."""
-        serializer = UserSerializer(request.user)
+        serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False)
-    def partial_update(self, request):
+    def partial_update(self, request, *args, **kwargs):
         """PATCH /profile/ → Allows user to update their own profile."""
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

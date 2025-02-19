@@ -32,7 +32,7 @@ router.register(r'user', UserProfileViewSet, basename='user-profile')
 
 router.register(r'webapp/announcement',AnnouncementViewset)
 
-router.register(r'webapp/donation-history',DonationHistoryViewSet)
+router.register(r'webapp/donation-history',DonationHistoryViewSet, basename='share-donation-history')
 router.register(r'user/donation-history',UserDonationHistoryViewSet, basename='user-donation-history')
 
 router.register(r'webapp/donation-location', DonationLocationViewSet)

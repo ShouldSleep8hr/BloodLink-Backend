@@ -33,11 +33,13 @@ class UserProfileViewSet(viewsets.ViewSet):
     """Handles user profile viewing and updating."""
     # permission_classes = [permissions.IsAuthenticated]  # Must be logged in
 
+    @action(detail=False)
     def retrieve(self, request):
         """GET /profile/ → Returns the logged-in user's profile."""
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
+    @action(detail=False)
     def partial_update(self, request):
         """PATCH /profile/ → Allows user to update their own profile."""
         serializer = UserSerializer(request.user, data=request.data, partial=True)

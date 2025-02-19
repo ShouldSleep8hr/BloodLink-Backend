@@ -108,24 +108,41 @@ class DonationLocationViewSet(viewsets.ModelViewSet):
         if facility_type:
             queryset = queryset.filter(facility_type=facility_type)
         return queryset
+    
+class SubDistrictViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny] 
 
-class SubDistrictViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
-
-    queryset = SubDistrict.objects.all()
+    queryset = SubDistrict.objects.all() 
     serializer_class = SubDistrictSerializer
+    pagination_class = CustomPagination
 
-class DistrictViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        district = self.request.query_params.get('district', None)
+        if district:
+            queryset = queryset.filter(district=district)
+        return queryset
+
+class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
 
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
+    pagination_class = CustomPagination
 
-class ProvinceViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        province = self.request.query_params.get('province', None)
+        if province:
+            queryset = queryset.filter(province=province)
+        return queryset
+
+class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
 
     queryset = Province.objects.all()
     serializer_class = ProvinceSerializer
+    pagination_class = CustomPagination
 
 class RegionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view

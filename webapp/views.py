@@ -1,7 +1,6 @@
 from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant, PreferredArea
-from rest_framework import permissions, viewsets, generics
+from rest_framework import permissions, viewsets, generics, views
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
@@ -49,17 +48,14 @@ class AchievementViewset(viewsets.ModelViewSet):
 #             queryset = queryset.filter(achievement_id=achievement_id)
 #         return queryset
     
-class UserAchievementViewset(viewsets.ViewSet):
-    queryset = UserAchievement.objects.all()
-    serializer_class = UserAchievementSerializer
+class UserAchievementViewset(viewsets.ReadOnlyModelViewSet):
+    """Handles user achievement retrieval."""
     # permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserAchievementSerializer
 
-    @action(detail=False, methods=["get"])
-    def achievements(self, request):
-        """GET /user/achievements/ → Returns logged-in user's achievements"""
-        queryset = UserAchievement.objects.filter(user=request.user)
-        serializer = UserAchievementSerializer(queryset, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        """Returns only the logged-in user's achievements."""
+        return UserAchievement.objects.filter(user=self.request.user)
 
 class EventViewset(viewsets.ModelViewSet):
     queryset = Event.objects.all()
@@ -84,15 +80,11 @@ class EventParticipantViewset(viewsets.ModelViewSet):
             queryset = queryset.filter(event_id=event_id)
         return queryset
     
-class UserEventParticipantViewset(viewsets.ModelViewSet):
-    queryset = EventParticipant.objects.all()
+class UserEventParticipantViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = EventParticipantSerializer
-    # permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.filter(user=self.request.user)
-        return queryset
+        return EventParticipant.objects.filter(user=self.request.user)
 
 class AnnouncementViewset(viewsets.ModelViewSet):
     queryset = Announcement.objects.all()
@@ -198,15 +190,11 @@ class DonationHistoryViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(user_id=user_id)
         return queryset
     
-class UserDonationHistoryViewSet(viewsets.ModelViewSet):
-    queryset = DonationHistory.objects.all()
+class UserDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DonationHistorySerializer
-    # permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.filter(user=self.request.user)
-        return queryset
+        return DonationHistory.objects.filter(user=self.request.user)
 
     # def get_queryset(self):
     #     # Return only donation histories for the authenticated user

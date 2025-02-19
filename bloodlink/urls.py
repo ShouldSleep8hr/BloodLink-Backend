@@ -28,7 +28,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
-router.register(r'user/profile', UserProfileViewSet, basename='user-profile')
+router.register(r'user', UserProfileViewSet, basename='user-profile')
 
 router.register(r'webapp/announcement',AnnouncementViewset)
 
@@ -43,7 +43,7 @@ router.register(r'webapp/region', RegionViewSet)
 router.register(r'webapp/post', PostViewSet)
 
 router.register(r'webapp/achievement', AchievementViewset)
-router.register(r'user/achievements', UserAchievementViewset, basename="user-achievements")
+router.register(r'user/achievement', UserAchievementViewset, basename="user-achievement")
 
 
 router.register(r'webapp/event', EventViewset)

@@ -20,7 +20,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from accounts.views import UserViewSet, UserProfileViewSet
-from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, AnnouncementViewset, DonationHistoryViewSet, UserDonationHistoryViewSet, AchievementViewset, UserAchievementViewset, EventViewset, EventParticipantViewset, UserEventParticipantViewset, PreferredAreaViewset
+from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, UserPostViewSet, AnnouncementViewset, DonationHistoryViewSet, UserDonationHistoryViewSet, AchievementViewset, UserAchievementViewset, EventViewset, EventParticipantViewset, UserEventParticipantViewset, PreferredAreaViewset
 
 from linemessagingapi.views import Webhook
 
@@ -40,7 +40,9 @@ router.register(r'webapp/subdistrict', SubDistrictViewSet)
 router.register(r'webapp/district', DistrictViewSet)
 router.register(r'webapp/province', ProvinceViewSet)
 router.register(r'webapp/region', RegionViewSet)
+
 router.register(r'webapp/post', PostViewSet)
+router.register(r'user/post',UserPostViewSet, basename='user-post')
 
 router.register(r'webapp/achievement', AchievementViewset)
 router.register(r'user/achievement', UserAchievementViewset, basename="user-achievement")

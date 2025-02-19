@@ -150,45 +150,54 @@ class RegionViewSet(viewsets.ModelViewSet):
     queryset = Region.objects.all()
     serializer_class = RegionSerializer
 
-class PostViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]  # Use token authentication
+class PostViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(show=True).order_by('-created_on')
     serializer_class = PostSerializer
     pagination_class = CustomPagination  # Set the custom pagination
     
     def get_queryset(self):
         now = timezone.now()
+        
+        # Use `update()` only if there are posts to update (avoids unnecessary DB queries)
+        expired_posts = Post.objects.filter(due_date__lt=now, show=True)
+        if expired_posts.exists():
+            expired_posts.update(show=False)
 
-        # Automatically update `show=False` for expired posts
-        Post.objects.filter(due_date__lt=now, show=True).update(show=False)
-
-        # Get posts that are still `show=True`
-        queryset = Post.objects.filter(show=True).order_by('-created_on')
-
-        user_id = self.request.query_params.get('user')
-        if user_id:
-            queryset = queryset.filter(user_id=user_id)
-
-        # Filter posts by the authenticated user if logged in
-        # user = self.request.user
-        # if user.is_authenticated:
-        #     queryset = queryset.filter(user=user)
+        # Filter posts that are still `show=True`
+        queryset = super().get_queryset()  # Uses the `queryset` defined above
 
         # Apply the `limit` parameter if present
-        limit = self.request.query_params.get('limit', None)
-        if limit is not None:
+        limit = self.request.query_params.get('limit')
+        if limit and limit.isdigit():
             return queryset[:int(limit)]
 
         return queryset
+    
+class UserPostViewSet(viewsets.ModelViewSet):
+    serializer_class = PostSerializer
 
-# class PostCreateView(generics.CreateAPIView):
-#     queryset = Post.objects.all()
-#     serializer_class = PostSerializer
+    def get_queryset(self):
+        """Return only posts created by the logged-in user."""
+        return Post.objects.filter(user=self.request.user).order_by('-created_on')
 
-#     def perform_create(self, serializer):
-#         serializer.save()  # This will call the create method in the serializer
+    def perform_create(self, serializer):
+        """Set the user automatically when creating a post."""
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        """Ensure only the post owner can update their post."""
+        post = self.get_object()
+        if post.user != self.request.user:
+            return Response({"error": "You do not have permission to edit this post."}, status=status.HTTP_403_FORBIDDEN)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        """Ensure only the post owner can delete their post."""
+        if instance.user != self.request.user:
+            return Response({"error": "You do not have permission to delete this post."}, status=status.HTTP_403_FORBIDDEN)
+        instance.delete()
 
 class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny] 
@@ -199,10 +208,19 @@ class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         return DonationHistory.objects.filter(verify=True, share_status=True).order_by('-created_on')
     
 class UserDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for users to view and create their donation history."""
     serializer_class = DonationHistorySerializer
 
     def get_queryset(self):
         return DonationHistory.objects.filter(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        """Allow users to create a new donation history."""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)  # Assign the user automatically
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # def get_queryset(self):
     #     # Return only donation histories for the authenticated user

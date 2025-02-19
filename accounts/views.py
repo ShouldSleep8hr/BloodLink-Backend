@@ -29,24 +29,23 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
 
-class UserProfileViewSet(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
+class UserProfileViewSet(viewsets.ViewSet):
+    """Handles user profile viewing and updating."""
+    # permission_classes = [permissions.IsAuthenticated]  # Ensure user is logged in
 
-    def get_queryset(self):
-        return Users.objects.filter(id=self.request.user.id)
-
-    def retrieve(self, request, *args, **kwargs):
-        """GET /profile/ → Returns the logged-in user's profile."""
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
-
-    def partial_update(self, request, *args, **kwargs):
-        """PATCH /profile/ → Allows user to update their own profile."""
-        serializer = self.get_serializer(request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
+    @action(detail=False, methods=["get", "patch"])
+    def profile(self, request):
+        """Handles GET (view profile) and PATCH (update profile)"""
+        if request.method == "GET":
+            serializer = UserSerializer(request.user)
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        elif request.method == "PATCH":
+            serializer = UserSerializer(request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
     
     # @action(detail=False, methods=['get'])
     # @action(detail=False) # detail=False so dont need id in parameter

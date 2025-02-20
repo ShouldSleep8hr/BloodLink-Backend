@@ -1,6 +1,7 @@
 from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant, PreferredArea
 from rest_framework import permissions, viewsets, generics, views
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
@@ -10,6 +11,7 @@ from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
 from django.utils import timezone
+from django.dispatch import receiver, Signal
 
 import logging
 
@@ -159,11 +161,11 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         now = timezone.now()
-        
         # Use `update()` only if there are posts to update (avoids unnecessary DB queries)
-        expired_posts = Post.objects.filter(due_date__lt=now, show=True)
-        if expired_posts.exists():
-            expired_posts.update(show=False)
+        Post.objects.filter(due_date__lt=now, show=True).update(show=False)
+        # expired_posts = Post.objects.filter(due_date__lt=now, show=True)
+        # if expired_posts.exists():
+        #     expired_posts.update(show=False)
 
         # Filter posts that are still `show=True`
         queryset = super().get_queryset()  # Uses the `queryset` defined above
@@ -174,13 +176,20 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
             return queryset[:int(limit)]
 
         return queryset
-    
+
+post_interested = Signal()
 class UserPostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
+    pagination_class = CustomPagination
+    queryset = Post.objects.filter(show=True).order_by('-created_on')
 
     def get_queryset(self):
         """Return only posts created by the logged-in user."""
-        return Post.objects.filter(user=self.request.user).order_by('-created_on')
+        now = timezone.now()
+        # Use `update()` only if there are posts to update (avoids unnecessary DB queries)
+        Post.objects.filter(due_date__lt=now, show=True).update(show=False)
+
+        return super().get_queryset().filter(user=self.request.user)
 
     def perform_create(self, serializer):
         """Set the user automatically when creating a post."""
@@ -190,13 +199,13 @@ class UserPostViewSet(viewsets.ModelViewSet):
         """Ensure only the post owner can update their post."""
         post = self.get_object()
         if post.user != self.request.user:
-            return Response({"error": "You do not have permission to edit this post."}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied("You do not have permission to edit this post.")
         serializer.save()
 
     def perform_destroy(self, instance):
         """Ensure only the post owner can delete their post."""
         if instance.user != self.request.user:
-            return Response({"error": "You do not have permission to delete this post."}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied("You do not have permission to delete this post.")
         instance.delete()
 
     @action(detail=True, methods=["post"])
@@ -205,6 +214,8 @@ class UserPostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.number_interest += 1
         post.save()
+        # Send a signal that the post was liked
+        post_interested.send(sender=Post, instance=post, interested_by=request.user)
         return Response({"message": "Post interest successfully!"}, status=200)
 
 class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):

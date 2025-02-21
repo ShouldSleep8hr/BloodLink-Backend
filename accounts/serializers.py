@@ -48,7 +48,20 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
     
 class UserRankingSerializer(serializers.ModelSerializer):
+    rank = serializers.SerializerMethodField()
+    total_users = serializers.SerializerMethodField()
+
     class Meta:
         model = Users
-        fields = ['line_username', 'score', 'profile_picture']
+        fields = ['rank', 'line_username', 'score', 'profile_picture', 'total_users']
+
+    def get_rank(self, obj):
+        """Assign rank based on ordering"""
+        sorted_users = Users.objects.order_by('-score')[:5]  # Get top 5
+        rank_dict = {user.id: rank + 1 for rank, user in enumerate(sorted_users)}
+        return rank_dict.get(obj.id, None)  # Return the rank
+
+    def get_total_users(self, obj):
+        """Return the total number of users"""
+        return Users.objects.count()  # Count all users in the database
 

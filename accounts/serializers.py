@@ -5,10 +5,12 @@ from webapp.serializers import PreferredAreaSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     preferred_areas = PreferredAreaSerializer(many=True)
+    rank = serializers.SerializerMethodField()
+    total_users = serializers.SerializerMethodField()
 
     class Meta:
         model = Users
-        fields = ['id', 'full_name', 'line_user_id', 'line_username', 'profile_picture', 'email', 'birthdate', 'phone_number', 'blood_type', 'latest_donation_date', 'preferred_areas', 'score', 'created_on']
+        fields = ['id', 'full_name', 'line_user_id', 'line_username', 'profile_picture', 'email', 'rank', 'total_users', 'birthdate', 'phone_number', 'blood_type', 'latest_donation_date', 'preferred_areas', 'score', 'created_on']
         extra_kwargs = {
             'email': {'required': True},  # Ensure email is required
             'line_user_id': {'required': True},  # LINE ID is required
@@ -47,21 +49,31 @@ class UserSerializer(serializers.ModelSerializer):
 
         return instance
     
-class UserRankingSerializer(serializers.ModelSerializer):
-    rank = serializers.SerializerMethodField()
-    total_users = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Users
-        fields = ['rank', 'line_username', 'score', 'profile_picture', 'total_users']
-
     def get_rank(self, obj):
         """Assign rank based on ordering"""
-        sorted_users = Users.objects.order_by('-score')[:5]  # Get top 5
+        sorted_users = Users.objects.order_by('-score')
         rank_dict = {user.id: rank + 1 for rank, user in enumerate(sorted_users)}
         return rank_dict.get(obj.id, None)  # Return the rank
-
+    
     def get_total_users(self, obj):
         """Return the total number of users"""
         return Users.objects.count()  # Count all users in the database
+    
+class UserRankingSerializer(serializers.ModelSerializer):
+    # rank = serializers.SerializerMethodField()
+    # total_users = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Users
+        fields = ['full_name', 'score', 'profile_picture']
+
+    # def get_rank(self, obj):
+    #     """Assign rank based on ordering"""
+    #     sorted_users = Users.objects.order_by('-score')[:5]  # Get top 5
+    #     rank_dict = {user.id: rank + 1 for rank, user in enumerate(sorted_users)}
+    #     return rank_dict.get(obj.id, None)  # Return the rank
+
+    # def get_total_users(self, obj):
+    #     """Return the total number of users"""
+    #     return Users.objects.count()  # Count all users in the database
 

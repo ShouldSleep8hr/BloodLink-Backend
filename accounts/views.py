@@ -11,7 +11,7 @@ from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from rest_framework.decorators import action
 
-from accounts.serializers import UserSerializer
+from accounts.serializers import UserSerializer, UserRankingSerializer
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
@@ -28,6 +28,15 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
+
+class UserRankingView(APIView):
+    """Return top 5 users based on score"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        top_users = Users.objects.order_by('-score')[:5]  # Get top 5 users sorted by score
+        serializer = UserRankingSerializer(top_users, many=True)
+        return Response(serializer.data)
 
 class UserProfileViewSet(viewsets.ViewSet):
     """Handles user profile viewing and updating."""

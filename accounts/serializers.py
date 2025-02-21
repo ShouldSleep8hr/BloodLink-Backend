@@ -46,4 +46,9 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+    
+class UserRankingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Users
+        fields = ['line_username', 'score', 'profile_picture']
 

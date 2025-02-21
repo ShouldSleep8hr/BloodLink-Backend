@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 
-from accounts.views import UserViewSet, UserProfileViewSet
+from accounts.views import UserViewSet, UserProfileViewSet, UserRankingView
 from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, UserPostViewSet, AnnouncementViewset, DonationHistoryViewSet, UserDonationHistoryViewSet, AchievementViewset, UserAchievementViewset, EventViewset, EventParticipantViewset, UserEventParticipantViewset, PreferredAreaViewset
 
 from linemessagingapi.views import Webhook
@@ -72,4 +72,5 @@ urlpatterns = [
     # path('register/', UserRegistrationView.as_view(), name='register'),
     path('line/', Webhook.as_view(), name='line_webhook'),
     # path('line/<str:token>/', Webhook.as_view(), name='line_token'),
+    path('ranking/', UserRankingView.as_view(), name='user-ranking'),
 ]

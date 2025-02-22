@@ -92,7 +92,7 @@ class AnnouncementViewset(viewsets.ModelViewSet):
     queryset = Announcement.objects.all()
     serializer_class = AnnouncementSerializer
 
-    authentication_classes = [TokenAuthentication]  # Use token authentication
+    pagination_class = CustomPagination
     permission_classes = [permissions.AllowAny]
 
 class DonationLocationViewSet(viewsets.ModelViewSet):

@@ -98,14 +98,23 @@ class DonationLocationSerializer(serializers.ModelSerializer):
 #         fields = ['id', 'name', 'keyword', 'address', 'contact', 'subdistrict', 'district', 'province', 'latitude', 'longtitude', 'googlemap']
 
 class PostSerializer(serializers.ModelSerializer):
-    # user = serializers.CharField(source='user.email', read_only=True)
-    # location = serializers.CharField(source='location.name')
-    # location = DonationLocationSerializer()
-    # latitude = serializers.DecimalField(max_digits=20, decimal_places=15, source='location.latitude', read_only=True)
-    # longitude = serializers.DecimalField(max_digits=20, decimal_places=15, source='location.longitude', read_only=True)
+    user_full_name = serializers.SerializerMethodField()
+    user_profile_picture = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
-        fields = ['id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 'new_address', 'due_date','contact', 'number_interest', 'number_donor', 'show', 'created_on']
+        fields = ['id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 'new_address', 'due_date','contact', 'number_interest', 'number_donor', 'show', 'created_on', 'user_full_name', 'user_profile_picture']
+
+    def get_user_full_name(self, obj):
+        """Return the user's full name."""
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()
+
+    def get_user_profile_picture(self, obj):
+        """Return the user's profile picture URL."""
+        request = self.context.get('request')
+        if obj.user.profile_picture:
+            return request.build_absolute_uri(obj.user.profile_picture.url) if request else obj.user.profile_picture.url
+        return None
 
     def create(self, validated_data):
         request_data = self.context['request'].data
@@ -170,11 +179,49 @@ class DonationHistorySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"location": "Location with this name does not exist."})
 
         return data
+    
+    # def update(self, instance, validated_data):
+    #     verify = validated_data['verify']
+    #     share_status = validated_data['share_status']
+
+    #     if verify == True:
+    #         pass
+            
+
+    #     for field, value in validated_data.items():
+    #         setattr(instance, field, value)
+    #     instance.save()
+
+    #     return instance
 
     def create(self, validated_data):
         # Directly create the donation history record
         return DonationHistory.objects.create(**validated_data)
     
+    def get_donor_card_image_url(self, obj):
+        return self.build_public_url(obj.donor_card_image) if obj.donor_card_image else None
+
+    def get_donation_image_url(self, obj):
+        return self.build_public_url(obj.donation_image) if obj.donation_image else None
+
+    def build_public_url(self, image_field):
+        """Construct the public URL by removing query parameters."""
+        base_url = f"https://storage.googleapis.com/{settings.GS_BUCKET_NAME}/"
+        return f"{base_url}{image_field}"
+
+class SharedDonationHistorySerializer(serializers.ModelSerializer):
+    location_name = serializers.CharField(source='location.name', read_only=True) 
+    donor_card_image_url = serializers.SerializerMethodField()
+    donation_image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DonationHistory
+        fields = [
+            'id', 'user', 'donation_date', 'location_name', 'share_status',
+            'donor_card_image_url', 'donation_image_url',
+            'image_description', 'donation_type', 'verify', 'created_on', 'number_like'
+        ]
+
     def get_donor_card_image_url(self, obj):
         return self.build_public_url(obj.donor_card_image) if obj.donor_card_image else None
 

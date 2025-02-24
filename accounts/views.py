@@ -197,8 +197,8 @@ class LineLoginCallbackView(APIView):
             response = HttpResponseRedirect('https://hare-trusty-boa.ngrok-free.app/callback')
             # response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Strict", max_age=3600)
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Strict", max_age=86400)
-            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None", max_age=3600)
-            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None", max_age=86400)
+            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
+            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
             return response
         except Exception as e:
             return Response({'error': 'Failed to update or create user', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -327,7 +327,7 @@ class LineLoginCallbackView(APIView):
 
 class RefreshTokenView(APIView):
     permission_classes = [permissions.AllowAny]
-    
+
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
 

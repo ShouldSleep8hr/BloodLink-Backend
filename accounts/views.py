@@ -326,6 +326,8 @@ class LineLoginCallbackView(APIView):
 #         return Response(status=status.HTTP_205_RESET_CONTENT)
 
 class RefreshTokenView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
 

@@ -334,10 +334,15 @@ class RefreshTokenView(APIView):
 
         try:
             refresh = RefreshToken(refresh_token)
+
+            # Check if the token is blacklisted (user logged out)
+            if BlacklistedToken.objects.filter(token__jti=refresh['jti']).exists():
+                return Response({"error": "Refresh token is blacklisted"}, status=status.HTTP_400_BAD_REQUEST)
+            
             access_token = str(refresh.access_token)
 
             response = Response({"message": "Token refreshed"}, status=status.HTTP_200_OK)
-            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="Lax")
+            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
 
             return response
         except Exception as e:
@@ -376,12 +381,15 @@ class LogoutView(APIView):
             if not refresh_token:
                 return Response({"error": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-            token = RefreshToken(refresh_token)
-            token.blacklist()  # Blacklist refresh token
-
             response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
-            response.delete_cookie("access_token")  # Remove tokens from cookies
+            
+            # Delete cookies FIRST before blacklisting the token
+            response.delete_cookie("access_token")
             response.delete_cookie("refresh_token")
+
+            # Blacklist refresh token after deleting cookies
+            token = RefreshToken(refresh_token)
+            token.blacklist()
 
             return response
 

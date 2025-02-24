@@ -10,9 +10,9 @@ class CookieJWTAuthentication(JWTAuthentication):
             print("No access token found in cookies")
             return None  # No token found
 
+        print(access_token)
         try:
             validated_token = AccessToken(access_token)  # Validate token
-            print(access_token)
             print(validated_token)
             print(self.get_user(validated_token))
         except Exception as e:

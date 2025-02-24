@@ -381,15 +381,14 @@ class LogoutView(APIView):
             if not refresh_token:
                 return Response({"error": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-            response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
-            
-            # Delete cookies FIRST before blacklisting the token
-            response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token")
-
-            # Blacklist refresh token after deleting cookies
+            # Blacklist refresh token
             token = RefreshToken(refresh_token)
             token.blacklist()
+
+            response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
+            # Correct way to delete cookies (expire immediately)
+            response.set_cookie("access_token", "", httponly=True, secure=True, samesite="None", expires=0)
+            response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="None", expires=0)
 
             return response
 
@@ -404,10 +403,10 @@ class LogoutAllView(APIView):
             for token in tokens:
                 BlacklistedToken.objects.get_or_create(token=token)
 
-            # Clear cookies
             response = Response({"message": "Logged out from all devices"}, status=status.HTTP_205_RESET_CONTENT)
-            response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token")
+            # Correct way to delete cookies (expire immediately)
+            response.set_cookie("access_token", "", httponly=True, secure=True, samesite="None", expires=0)
+            response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="None", expires=0)
 
             return response
 

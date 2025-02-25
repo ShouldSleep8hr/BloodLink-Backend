@@ -44,6 +44,11 @@ donation_type_choice = [
     ("ฉุกเฉิน", "บริจาคโลหิตฉุกเฉิน"),
 ]
 
+donation_history_status_choice = [
+    ("pending", "รอการตรวจสอบ"),
+    ("verified", "ได้รับการยืนยัน"),
+]
+
 class Region(models.Model):
     name = models.CharField(max_length=50, null=True, blank=False)
 
@@ -120,7 +125,7 @@ class DonationHistory(models.Model):
     donation_point = models.PositiveIntegerField(default=0)
     donation_type = models.CharField(max_length=10, choices=donation_type_choice, default="ทั่วไป")
     
-    verify = models.BooleanField(default=False)
+    verify_status = models.CharField(max_length=10, choices=donation_history_status_choice, default="pending")
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)
 

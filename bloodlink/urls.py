@@ -21,6 +21,7 @@ from rest_framework import routers
 
 from accounts.views import UserViewSet, UserProfileViewSet, UserRankingView
 from webapp.views import DonationLocationViewSet, SubDistrictViewSet, DistrictViewSet, ProvinceViewSet, RegionViewSet, PostViewSet, UserPostViewSet, AnnouncementViewset, DonationHistoryViewSet, UserDonationHistoryViewSet, AchievementViewset, UserAchievementViewset, EventViewset, EventParticipantViewset, UserEventParticipantViewset, PreferredAreaViewset
+from webapp.views import VerifyDonationHistoryViewSet
 
 from linemessagingapi.views import Webhook
 
@@ -34,6 +35,7 @@ router.register(r'webapp/announcement',AnnouncementViewset)
 
 router.register(r'webapp/donation-history',DonationHistoryViewSet, basename='share-donation-history')
 router.register(r'user/donation-history',UserDonationHistoryViewSet, basename='user-donation-history')
+router.register(r'webapp/verify-donation-history',VerifyDonationHistoryViewSet, basename='verify-donation-history')
 
 router.register(r'webapp/donation-location', DonationLocationViewSet)
 router.register(r'webapp/subdistrict', SubDistrictViewSet)

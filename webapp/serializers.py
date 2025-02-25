@@ -156,29 +156,30 @@ class DonationHistorySerializer(serializers.ModelSerializer):
     location_name = serializers.CharField(source='location.name', read_only=True) 
     donor_card_image_url = serializers.SerializerMethodField()
     donation_image_url = serializers.SerializerMethodField()
+    user_full_name = serializers.CharField(source='user.full_name', read_only=True) 
     
     class Meta:
         model = DonationHistory
         fields = [
-            'id', 'user', 'donation_date', 'location', 'location_name', 'share_status',
+            'id', 'user', 'user_full_name', 'donation_date', 'location', 'location_name', 'share_status',
             'donor_card_image', 'donor_card_image_url', 'donation_image', 'donation_image_url',
-            'image_description', 'donation_point', 'donation_type', 'verify', 'created_on', 'updated_on'
+            'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on'
         ]
-        read_only_fields = ['verify', 'created_on', 'updated_on']
+        read_only_fields = ['created_on', 'updated_on']
 
-    def validate(self, data):
-        # Validate location name
-        location_id = self.context['request'].data.get('location')
-        if not location_id:
-            raise serializers.ValidationError({"location": "This field is required."})
+    # def validate(self, data):
+    #     # Validate location name
+    #     location_id = self.context['request'].data.get('location')
+    #     if not location_id:
+    #         raise serializers.ValidationError({"location": "This field is required."})
 
-        # Ensure the location exists
-        try:
-            data['location'] = DonationLocation.objects.get(id=location_id)
-        except DonationLocation.DoesNotExist:
-            raise serializers.ValidationError({"location": "Location with this name does not exist."})
+    #     # Ensure the location exists
+    #     try:
+    #         data['location'] = DonationLocation.objects.get(id=location_id)
+    #     except DonationLocation.DoesNotExist:
+    #         raise serializers.ValidationError({"location": "Location with this name does not exist."})
 
-        return data
+    #     return data
     
     # def update(self, instance, validated_data):
     #     verify = validated_data['verify']

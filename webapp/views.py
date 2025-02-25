@@ -224,7 +224,35 @@ class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return DonationHistory.objects.filter(verify=True, share_status=True).order_by('-created_on')
+        return DonationHistory.objects.filter(verify_status='verified', share_status=True).order_by('-created_on')
+    
+class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = DonationHistorySerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return DonationHistory.objects.filter(verify_status='pending').order_by('-created_on')
+    
+    @action(detail=False, methods=["PATCH"], url_path="approve")
+    def bulk_approve(self, request):
+        """Approve multiple pending donation records"""
+        ids = request.data.get("ids", [])
+        if not ids:
+            return Response({"error": "No IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        updated_count = DonationHistory.objects.filter(id__in=ids, verify_status="pending").update(verify_status="verified")
+        return Response({"message": f"Approved {updated_count} records"}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["DELETE"], url_path="delete")
+    def bulk_delete(self, request):
+        """Delete multiple pending donation records"""
+        ids = request.data.get("ids", [])
+        if not ids:
+            return Response({"error": "No IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        deleted_count, _ = DonationHistory.objects.filter(id__in=ids, verify_status="pending").delete()
+        return Response({"message": f"Deleted {deleted_count} records"}, status=status.HTTP_204_NO_CONTENT)
     
 class UserDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for users to view and create their donation history."""

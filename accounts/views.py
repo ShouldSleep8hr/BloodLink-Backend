@@ -213,10 +213,10 @@ class LineLoginCallbackView(APIView):
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
             return Response({
                 'message': 'User logged in' if not created else 'User registered successfully',
-                'user_id': user.id,
-                'user_email': user.email,
-                'line_username': user.line_username,
-                'profile_picture': user.profile_picture,
+                # 'user_id': user.id,
+                # 'user_email': user.email,
+                # 'line_username': user.line_username,
+                # 'profile_picture': user.profile_picture,
                 "access": access_token,
                 "refresh": str(refresh),
             }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)

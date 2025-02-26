@@ -28,7 +28,7 @@ from linemessagingapi.views import Webhook
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
+# router.register(r'users', UserViewSet)
 router.register(r'user', UserProfileViewSet, basename='user-profile')
 
 router.register(r'webapp/announcement',AnnouncementViewset)
@@ -64,9 +64,9 @@ urlpatterns = [
 
     path('auth/', include('accounts.urls')),
 
-    path('', include('djoser.urls')), # Djoser handles login/logout
+    # path('', include('djoser.urls')), # Djoser handles login/logout
     # path('', include('djoser.urls.authtoken')), # Token-based auth
-    path('', include('djoser.urls.jwt')), # Token-based auth
+    # path('', include('djoser.urls.jwt')), # Token-based auth
     # path('token/obtain/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Obtain JWT
     # path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Refresh JWT
 

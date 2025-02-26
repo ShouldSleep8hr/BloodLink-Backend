@@ -5,6 +5,7 @@ from django.core.cache import cache
 from accounts.models import Users
 from rest_framework import permissions, viewsets
 from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -188,27 +189,37 @@ class LineLoginCallbackView(APIView):
             # refresh = RefreshToken.for_user(user)
             # tokens = { 'refresh': str(refresh), 'access': str(refresh.access_token), }
 
-            # return Response({
+            # Response({
             #     'message': 'User logged in' if not created else 'User registered successfully',
             #     'user_id': user.id,
             #     'user_email': user.email,
             #     'line_username': user.line_username,
             #     'profile_picture': user.profile_picture,
-            #     'tokens': tokens,
-            # }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+            # })
 
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
+            # response["Authorization"] = f"Bearer {access_token}"
+            # response["Refresh-Token"] = str(refresh)
+
             # Redirect response with HttpOnly cookies
-            response = HttpResponseRedirect('https://kmitldev-blood-link.netlify.app/callback')
+            # response = HttpResponseRedirect('https://kmitldev-blood-link.netlify.app/callback')
             # response = JsonResponse({"redirect_url": "https://kmitldev-blood-link.netlify.app/callback"})
             # response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Strict", max_age=3600)
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Strict", max_age=86400)
-            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
-            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
-            return response
+            # response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
+            # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
+            return Response({
+                'message': 'User logged in' if not created else 'User registered successfully',
+                'user_id': user.id,
+                'user_email': user.email,
+                'line_username': user.line_username,
+                'profile_picture': user.profile_picture,
+                "access": access_token,
+                "refresh": str(refresh),
+            }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': 'Failed to update or create user', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -334,92 +345,80 @@ class LineLoginCallbackView(APIView):
 
 #         return Response(status=status.HTTP_205_RESET_CONTENT)
 
-class RefreshTokenView(APIView):
-    permission_classes = [permissions.AllowAny]
+# class RefreshTokenView(APIView):
+#     permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
-        refresh_token = request.COOKIES.get("refresh_token")
+#     def post(self, request):
+#         refresh_token = request.COOKIES.get("refresh_token")
 
-        if not refresh_token:
-            return Response({"error": "Refresh token missing"}, status=status.HTTP_400_BAD_REQUEST)
+#         if not refresh_token:
+#             return Response({"error": "Refresh token missing"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            refresh = RefreshToken(refresh_token)
+#         try:
+#             refresh = RefreshToken(refresh_token)
 
-            # Check if the token is blacklisted (user logged out)
-            if BlacklistedToken.objects.filter(token__jti=refresh['jti']).exists():
-                return Response({"error": "Refresh token is blacklisted"}, status=status.HTTP_400_BAD_REQUEST)
+#             # Check if the token is blacklisted (user logged out)
+#             if BlacklistedToken.objects.filter(token__jti=refresh['jti']).exists():
+#                 return Response({"error": "Refresh token is blacklisted"}, status=status.HTTP_400_BAD_REQUEST)
             
-            access_token = str(refresh.access_token)
+#             access_token = str(refresh.access_token)
 
-            response = Response({"message": "Token refreshed"}, status=status.HTTP_200_OK)
-            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
+#             response = Response({"message": "Token refreshed"}, status=status.HTTP_200_OK)
+#             response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
 
-            return response
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+#             return response
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 # class LogoutView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
 
 #     def post(self, request):
 #         try:
-#             # Get refresh token from HttpOnly Cookie
-#             refresh_token = request.COOKIES.get("refresh_token")
+#             refresh_token = request.COOKIES.get("refresh_token")  # Get refresh token from cookie
 
 #             if not refresh_token:
 #                 return Response({"error": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
 
+#             # Blacklist refresh token
 #             token = RefreshToken(refresh_token)
 #             token.blacklist()
 
-#             # Clear cookies
 #             response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
-#             response.delete_cookie("access_token")
-#             response.delete_cookie("refresh_token")
+#             # Correct way to delete cookies (expire immediately)
+#             response.set_cookie("access_token", "", httponly=True, secure=True, samesite="None", expires=0)
+#             response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="None", expires=0)
 
 #             return response
 
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 class LogoutView(APIView):
+    # permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         try:
-            refresh_token = request.COOKIES.get("refresh_token")  # Get refresh token from cookie
-
-            if not refresh_token:
-                return Response({"error": "Refresh token not found"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Blacklist refresh token
+            refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
-            token.blacklist()
-
-            response = Response({"message": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
-            # Correct way to delete cookies (expire immediately)
-            response.set_cookie("access_token", "", httponly=True, secure=True, samesite="None", expires=0)
-            response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="None", expires=0)
-
-            return response
-
+            token.blacklist()  # Blacklist refresh token
+            return Response({"message": "Successfully logged out"}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
 
-class LogoutAllView(APIView):
+# class LogoutAllView(APIView):
 
-    def post(self, request):
-        try:
-            tokens = OutstandingToken.objects.filter(user_id=request.user.id)
-            for token in tokens:
-                BlacklistedToken.objects.get_or_create(token=token)
+#     def post(self, request):
+#         try:
+#             tokens = OutstandingToken.objects.filter(user_id=request.user.id)
+#             for token in tokens:
+#                 BlacklistedToken.objects.get_or_create(token=token)
 
-            response = Response({"message": "Logged out from all devices"}, status=status.HTTP_205_RESET_CONTENT)
-            # Correct way to delete cookies (expire immediately)
-            response.set_cookie("access_token", "", httponly=True, secure=True, samesite="None", expires=0)
-            response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="None", expires=0)
+#             response = Response({"message": "Logged out from all devices"}, status=status.HTTP_205_RESET_CONTENT)
+#             # Correct way to delete cookies (expire immediately)
+#             response.set_cookie("access_token", "", httponly=True, secure=True, samesite="None", expires=0)
+#             response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="None", expires=0)
 
-            return response
+#             return response
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

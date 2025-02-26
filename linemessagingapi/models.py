@@ -43,9 +43,15 @@ class LineChannelContact(models.Model):
 #     line_user_id = models.CharField(max_length=255, blank=True, null=True)  # Populated after follow event
 #     created_on = models.DateTimeField(default=timezone.now)
 
+def generate_nonce():
+    return secrets.token_urlsafe(16)  # 16-byte random string
+def generate_state():
+    return secrets.token_urlsafe(16)
+
 class NonceMapping(models.Model):
-    nonce = models.CharField(max_length=255, unique=True, default=secrets.token_urlsafe)
+    nonce = models.CharField(max_length=255, unique=True, default=generate_nonce)
+    state = models.CharField(max_length=255, unique=True, default=generate_state)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return self.nonce
+        return f"{self.nonce} {self.state}"

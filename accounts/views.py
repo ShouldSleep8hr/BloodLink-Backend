@@ -70,11 +70,11 @@ class LineLoginView(APIView):
         state = secrets.token_urlsafe(16)
         nonce = secrets.token_urlsafe(16)
 
-        request.session['line_login_state'] = state  # Store state in session
+        # request.session['line_login_state'] = state  # Store state in session
         
         # Save nonce in the database linked to a session or user
-        # NonceMapping.objects.create(nonce=nonce, state=state)
-        NonceMapping.objects.create(nonce=nonce)
+        NonceMapping.objects.create(nonce=nonce, state=state)
+        # NonceMapping.objects.create(nonce=nonce)
 
         line_login_url = (
             f"https://access.line.me/oauth2/v2.1/authorize"
@@ -99,13 +99,13 @@ class LineLoginCallbackView(APIView):
             return Response({'error': 'Authorization code or state is missing'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate state to prevent CSRF attacks
-        saved_state = request.session.pop('line_login_state', None)  # Retrieve and remove state from session
-        if saved_state != state:
-            return Response({'error': 'Invalid state parameter'}, status=status.HTTP_400_BAD_REQUEST)
+        # saved_state = request.session.pop('line_login_state', None)  # Retrieve and remove state from session
+        # if saved_state != state:
+        #     return Response({'error': 'Invalid state parameter'}, status=status.HTTP_400_BAD_REQUEST)
         # Validate state & nonce together
-        # nonce_mapping = NonceMapping.objects.filter(state=state).first()
-        # if not nonce_mapping:
-        #     return Response({"error": "Invalid state parameter"}, status=status.HTTP_400_BAD_REQUEST)
+        nonce_mapping = NonceMapping.objects.filter(state=state).first()
+        if not nonce_mapping:
+            return Response({"error": "Invalid state parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Exchange the authorization code for an access token
         token_url = "https://api.line.me/oauth2/v2.1/token"
@@ -142,14 +142,14 @@ class LineLoginCallbackView(APIView):
             line_user_id = decoded_token.get('sub')
             email = decoded_token.get("email")
 
-            if not NonceMapping.objects.filter(nonce=nonce).exists():
-                return Response({"error": "Invalid nonce"}, status=status.HTTP_400_BAD_REQUEST)
-            # If valid, delete it to prevent reuse
-            NonceMapping.objects.filter(nonce=nonce).delete()
-            # if nonce_mapping.nonce != nonce:
+            # if not NonceMapping.objects.filter(nonce=nonce).exists():
             #     return Response({"error": "Invalid nonce"}, status=status.HTTP_400_BAD_REQUEST)
-            # # Delete nonce to prevent reuse
-            # nonce_mapping.delete()
+            # If valid, delete it to prevent reuse
+            # NonceMapping.objects.filter(nonce=nonce).delete()
+            if nonce_mapping.nonce != nonce:
+                return Response({"error": "Invalid nonce"}, status=status.HTTP_400_BAD_REQUEST)
+            # Delete nonce to prevent reuse
+            nonce_mapping.delete()
 
         except (ExpiredSignatureError) as e:
             return Response({'error': 'Expired ID token'}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 import requests
 from django.core.cache import cache
 
@@ -194,7 +194,8 @@ class LineLoginCallbackView(APIView):
             access_token = str(refresh.access_token)
 
             # Redirect response with HttpOnly cookies
-            response = HttpResponseRedirect('https://kmitldev-blood-link.netlify.app/callback')
+            # response = HttpResponseRedirect('https://kmitldev-blood-link.netlify.app/callback')
+            response = JsonResponse({"redirect_url": "https://kmitldev-blood-link.netlify.app/callback"})
             # response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Strict", max_age=3600)
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Strict", max_age=86400)
             response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None", domain='kmitldev-blood-link.netlify.app')

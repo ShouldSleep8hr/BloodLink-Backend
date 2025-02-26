@@ -194,12 +194,12 @@ class LineLoginCallbackView(APIView):
             access_token = str(refresh.access_token)
 
             # Redirect response with HttpOnly cookies
-            # response = HttpResponseRedirect('https://kmitldev-blood-link.netlify.app/callback')
-            response = JsonResponse({"redirect_url": "https://kmitldev-blood-link.netlify.app/callback"})
+            response = HttpResponseRedirect('https://kmitldev-blood-link.netlify.app/callback')
+            # response = JsonResponse({"redirect_url": "https://kmitldev-blood-link.netlify.app/callback"})
             # response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Strict", max_age=3600)
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Strict", max_age=86400)
-            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None", domain='.netlify.app')
-            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None", domain='.netlify.app')
+            response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
+            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
             return response
         except Exception as e:
             return Response({'error': 'Failed to update or create user', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

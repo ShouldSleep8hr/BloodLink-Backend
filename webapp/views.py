@@ -12,6 +12,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
 from django.utils import timezone
 from django.dispatch import receiver, Signal
+from django.db.models import Q
 
 import logging
 
@@ -232,7 +233,13 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return DonationHistory.objects.filter(verify_status='pending').order_by('-created_on')
+        return (
+            DonationHistory.objects
+            .filter(verify_status='pending')
+            .exclude(Q(donor_card_image__isnull=True) & Q(donation_image__isnull=True))
+            .order_by('-created_on')
+        )
+        # return DonationHistory.objects.filter(verify_status='pending').order_by('-created_on')
     
     @action(detail=False, methods=["PATCH"], url_path="approve")
     def bulk_approve(self, request):

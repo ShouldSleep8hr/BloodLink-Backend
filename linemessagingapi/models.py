@@ -50,8 +50,9 @@ def generate_state():
 
 class NonceMapping(models.Model):
     nonce = models.CharField(max_length=255, unique=True, default=generate_nonce)
-    state = models.CharField(max_length=255, unique=True, default=generate_state)
+    # state = models.CharField(max_length=255, unique=True, default=generate_state)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.nonce} {self.state}"
+        # return f"{self.nonce} {self.state}"
+        return self.nonce

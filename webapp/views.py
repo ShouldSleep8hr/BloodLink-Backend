@@ -236,7 +236,10 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         return (
             DonationHistory.objects
             .filter(verify_status='pending')
-            .exclude(Q(donor_card_image__isnull=True) & Q(donation_image__isnull=True))
+            .exclude(
+                (Q(donor_card_image__isnull=True) | Q(donor_card_image='')) &
+                (Q(donation_image__isnull=True) | Q(donation_image=''))
+            )
             .order_by('-created_on')
         )
         # return DonationHistory.objects.filter(verify_status='pending').order_by('-created_on')

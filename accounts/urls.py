@@ -1,6 +1,6 @@
 from django.urls import path
 # from auth.views import RegisterView, ChangePasswordView, UpdateProfileView
-from accounts.views import RefreshTokenView, LogoutView, LogoutAllView #, UserRegistrationView, CustomLoginView
+from accounts.views import LogoutView
 from accounts.views import LineLoginView, LineLoginCallbackView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 

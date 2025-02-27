@@ -229,11 +229,11 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PreferredArea
-        fields = ['id', 'user', 'district', 'district_name', 'province', 'province_name']
+        fields = ['id', 'district', 'district_name', 'province', 'province_name']
         # fields = ['id', 'districts', 'provinces']
 
     def validate(self, data):
-        # user = self.context["request"].user
+        user = self.context["request"].user
         district = data.get('district', None)
         province = data.get('province')
 
@@ -259,6 +259,7 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
         - Delete extra ones if the new list is shorter.
         - Create new ones if the new list is longer.
         """
+        user = self.context["request"].user
         existing_areas = list(user.preferred_areas.all())
         num_existing = len(existing_areas)
         num_new = len(preferred_areas_data)

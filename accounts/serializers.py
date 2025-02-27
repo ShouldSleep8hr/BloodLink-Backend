@@ -11,10 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ['id', 'full_name', 'line_user_id', 'line_username', 'profile_picture', 'email', 'rank', 'total_users', 'birthdate', 'phone_number', 'blood_type', 'latest_donation_date', 'preferred_areas', 'score', 'created_on']
-        extra_kwargs = {
-            'email': {'required': True},  # Ensure email is required
-            'line_user_id': {'required': True},  # LINE ID is required
-        }
+        # extra_kwargs = {
+        #     'email': {'required': True},  # Ensure email is required
+        #     'line_user_id': {'required': True},  # LINE ID is required
+        # }
 
     def create(self, validated_data):
         # Create a user with line_user_id and email
@@ -29,6 +29,10 @@ class UserSerializer(serializers.ModelSerializer):
     #     return instance
     
     def update(self, instance, validated_data):
+        restricted_fields = {'id', 'line_user_id', 'email', 'rank', 'total_users', 'score', 'created_on'}
+        for field in restricted_fields:
+            validated_data.pop(field, None)
+            
         # Extract preferred areas if provided
         preferred_areas_data = validated_data.pop('preferred_areas', None)
 
@@ -41,6 +45,9 @@ class UserSerializer(serializers.ModelSerializer):
                 # Update preferred areas
                 preferred_area_serializer = PreferredAreaSerializer()
                 preferred_area_serializer.update_preferred_areas(instance, preferred_areas_data)
+
+        # Remove any fields that are explicitly set to None (null)
+        validated_data = {k: v for k, v in validated_data.items() if v is not None}
 
         # Update user fields
         for field, value in validated_data.items():

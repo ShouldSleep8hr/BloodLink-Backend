@@ -16,6 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from webapp.views import post_interested
 
 from linemessagingapi.services.nearest_location import calculate_haversine_distance
 
@@ -462,7 +463,7 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                                 "action": {
                                     "type": "uri",
                                     "label": "ดูรายละเอียดโพสต์",
-                                    "uri": f"https://yourwebsite.com/post/{instance.id}"
+                                    "uri": f"https://bloodlink.up.railway.app/webapp/post/{instance.id}"
                                 },
                                 "color": "#DC0404",
                                 "style": "primary"
@@ -527,7 +528,7 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                             "action": {
                                 "type": "uri",
                                 "label": "ดูรายละเอียดโพสต์",
-                                "uri": f"https://yourwebsite.com/post/{instance.id}"
+                                "uri": f"https://bloodlink.up.railway.app/user/post/{instance.id}"
                             },
                             "color": "#DC0404",
                             "style": "primary"
@@ -538,3 +539,137 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
             # message = TextSendMessage(text=message_text)
             message = FlexSendMessage(alt_text="ขอรับบริจาคโลหิต", contents=flex_message)
             webhook.line_bot_api.push_message(instance.user.line_user_id, message)
+
+@receiver(post_interested, sender=Post)
+def notify_user_post_interested(sender, instance, interested_by, **kwargs):
+    """Notify the user that press interested in post."""
+    
+    # Ensure the user has linked their LINE account
+    if interested_by.user.line_user_id:
+        webhook = Webhook()  # Initialize webhook
+
+        flex_message = {
+            "type": "bubble",
+            "size": "mega",
+            "direction": "ltr",
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "none",
+                "margin": "none",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": "โพสต์บริจาคโลหิตฉุกเฉินที่คุณกดสนใจ",
+                        "weight": "regular",
+                        "align": "start",
+                        "margin": "none",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}",
+                        "contents": [],
+                        "wrap": True
+                    },
+                    {
+                        "type": "text",
+                        "text": "ขอบคุณที่สนใจร่วมช่วยเหลือ!",
+                        "margin": "xxl",
+                        "contents": []
+                    }
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "horizontal",
+                "spacing": "none",
+                "contents": [
+                    {
+                        "type": "button",
+                        "action": {
+                            "type": "uri",
+                            "label": "ดูรายละเอียดโพสต์",
+                            "uri": f"https://bloodlink.up.railway.app/webapp/post/{instance.id}"
+                        },
+                        "color": "#DC0404",
+                        "style": "primary"
+                    }
+                ]
+            }
+        }
+
+        message = FlexSendMessage(alt_text="โพสต์บริจาคโลหิตฉุกเฉินที่คุณกดสนใจ", contents=flex_message)
+        webhook.line_bot_api.push_message(interested_by.user.line_user_id, message)
+
+
+# @receiver(post_donation, sender=Post)
+def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
+    """Notify the post owner when someone has donated blood in their post."""
+    
+    # Ensure the user has linked their LINE account
+    if instance.user.line_user_id:
+        webhook = Webhook()  # Initialize webhook
+
+        flex_message = {
+            "type": "bubble",
+            "size": "mega",
+            "direction": "ltr",
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "none",
+                "margin": "none",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": "มีผู้บริจาคโลหิตให้โพสต์ของคุณ!",
+                        "weight": "regular",
+                        "align": "start",
+                        "margin": "none",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": f"{donated_by.full_name} บริจาคโลหิตโพสต์ของคุณ",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": f"บริจาคให้กับ {instance.recipient_name}",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": "ยินดีด้วยกับความช่วยเหลือ!",
+                        "margin": "xxl",
+                        "contents": []
+                    }
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "horizontal",
+                "spacing": "none",
+                "contents": [
+                    {
+                        "type": "button",
+                        "action": {
+                            "type": "uri",
+                            "label": "ดูรายละเอียดโพสต์",
+                            "uri": f"https://bloodlink.up.railway.app/user/post/{instance.id}"
+                        },
+                        "color": "#DC0404",
+                        "style": "primary"
+                    }
+                ]
+            }
+        }
+
+        message = FlexSendMessage(alt_text="มีผู้บริจาคโลหิตให้โพสต์ของคุณ", contents=flex_message)
+        webhook.line_bot_api.push_message(instance.user.line_user_id, message)

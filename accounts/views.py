@@ -19,6 +19,7 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from jwt import decode, ExpiredSignatureError, InvalidTokenError
+from urllib.parse import urlencode
 
 from django.shortcuts import redirect
 import secrets
@@ -207,19 +208,25 @@ class LineLoginCallbackView(APIView):
             # Redirect response with HttpOnly cookies
             # response = HttpResponseRedirect('https://kmitldev-blood-link.netlify.app/callback')
             # response = JsonResponse({"redirect_url": "https://kmitldev-blood-link.netlify.app/callback"})
-            # response.set_cookie("access_token", access_token, httponly=True, secure=False, samesite="Strict", max_age=3600)
-            # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Strict", max_age=86400)
             # response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
-            return Response({
-                'message': 'User logged in' if not created else 'User registered successfully',
-                # 'user_id': user.id,
-                # 'user_email': user.email,
-                # 'line_username': user.line_username,
-                # 'profile_picture': user.profile_picture,
-                "access": access_token,
-                "refresh": str(refresh),
-            }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+            
+            frontend_url = "https://kmitldev-blood-link.netlify.app/callback"
+            query_params = {"access": access_token, "refresh": str(refresh)}
+
+            redirect_url = f"{frontend_url}?{urlencode(query_params)}"
+
+            return HttpResponseRedirect(redirect_url)
+
+            # return Response({
+            #     'message': 'User logged in' if not created else 'User registered successfully',
+            #     # 'user_id': user.id,
+            #     # 'user_email': user.email,
+            #     # 'line_username': user.line_username,
+            #     # 'profile_picture': user.profile_picture,
+            #     "access": access_token,
+            #     "refresh": str(refresh),
+            # }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': 'Failed to update or create user', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

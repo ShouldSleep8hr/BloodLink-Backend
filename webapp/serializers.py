@@ -98,23 +98,12 @@ class DonationLocationSerializer(serializers.ModelSerializer):
 #         fields = ['id', 'name', 'keyword', 'address', 'contact', 'subdistrict', 'district', 'province', 'latitude', 'longtitude', 'googlemap']
 
 class PostSerializer(serializers.ModelSerializer):
-    user_full_name = serializers.SerializerMethodField()
-    user_profile_picture = serializers.SerializerMethodField()
+    user_full_name = serializers.CharField(source='user.full_name', read_only=True) 
+    user_profile_picture = serializers.CharField(source='user.profile_picture', read_only=True) 
 
     class Meta:
         model = Post
         fields = ['id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 'new_address', 'due_date','contact', 'number_interest', 'number_donor', 'show', 'created_on', 'user_full_name', 'user_profile_picture']
-
-    def get_user_full_name(self, obj):
-        """Return the user's full name."""
-        return f"{obj.user.first_name} {obj.user.last_name}".strip()
-
-    def get_user_profile_picture(self, obj):
-        """Return the user's profile picture URL."""
-        request = self.context.get('request')
-        if obj.user.profile_picture:
-            return request.build_absolute_uri(obj.user.profile_picture.url) if request else obj.user.profile_picture.url
-        return None
 
     def create(self, validated_data):
         request_data = self.context['request'].data

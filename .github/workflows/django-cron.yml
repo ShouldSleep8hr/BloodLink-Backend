@@ -1,0 +1,26 @@
+name: Schedule Task
+
+on:
+  schedule:
+    - cron: '*/6 * * * *'  # Runs at 2 AM UTC (which is 9 AM Bangkok time)
+    # - cron: '0 2 * * *'  # Runs at 2 AM UTC (which is 9 AM Bangkok time)
+
+jobs:
+  build:
+    name: Run crons
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3  # Checkout your repository code
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli  # Install the Railway CLI to interact with Railway services
+
+      - name: Install Python dependencies
+        run: railway run --service {{secrets.SERVICE_ID}} pip install -r requirements.txt
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}  # Use your Railway token from GitHub secrets
+
+      - name: Schedule Task
+        run: railway run --service {{secrets.SERVICE_ID}} python manage.py schedule_task  # Run your Django management command
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}  # Use your Railway token from GitHub secrets

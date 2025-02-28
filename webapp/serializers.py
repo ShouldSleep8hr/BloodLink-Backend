@@ -327,24 +327,52 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
         Update the user's preferred areas based on the new data.
         - Allows swapping of districts.
         - Prevents duplicate districts in the new list.
-        - Efficient bulk update and bulk create.
+        - Prevents updating if the new list is exactly the same as the existing one.
+        - Prevents selecting a whole province and a district within that province at the same time.
+        - Uses bulk_update and bulk_create for efficiency.
         """
         existing_areas = list(user.preferred_areas.all())
         num_existing = len(existing_areas)
         num_new = len(preferred_areas_data)
 
-        # Step 1: Collect districts in the new list to check for duplicates
+        # Convert existing areas into a set of (district_id, province_id)
+        existing_set = {(area.district.id if area.district else None, area.province.id) for area in existing_areas}
+        new_set = {(area.get('district').id if area.get('district') else None, area['province'].id) for area in preferred_areas_data}
+
+        # Step 1: If new list is exactly the same as existing, do nothing
+        if existing_set == new_set:
+            return  # No changes needed
+
+        # Step 2: Validate for duplicate districts and overlapping province-district selections
         new_districts = set()
+        selected_provinces = set()
+
         for area_data in preferred_areas_data:
             district = area_data.get('district', None)
+            province = area_data['province']
+
+            # If province is already selected, no district from that province should be allowed
+            if province in selected_provinces and district:
+                raise serializers.ValidationError({
+                    "district": f"You cannot add district {district.name} because province {province.name} is already selected."
+                })
+
+            # If a district is selected, ensure the province isn't already fully selected
             if district:
+                if province in selected_provinces:
+                    raise serializers.ValidationError({
+                        "district": f"You cannot add district {district.name} because the entire province {province.name} is already selected."
+                    })
                 if district.id in new_districts:
                     raise serializers.ValidationError({
                         "district": f"The district {district.name} appears more than once."
                     })
                 new_districts.add(district.id)
+            else:
+                # If only province is selected, store it
+                selected_provinces.add(province)
 
-        # Step 2: Update existing preferred areas
+        # Step 3: Update existing preferred areas
         updated_areas = []
         for i in range(min(num_existing, num_new)):
             area = existing_areas[i]
@@ -357,11 +385,11 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
         # Bulk update existing areas
         PreferredArea.objects.bulk_update(updated_areas, ["district", "province"])
 
-        # Step 3: Delete extra old areas
+        # Step 4: Delete extra old areas
         if num_existing > num_new:
             PreferredArea.objects.filter(id__in=[area.id for area in existing_areas[num_new:num_existing]]).delete()
 
-        # Step 4: Create new areas
+        # Step 5: Create new areas
         new_areas = [
             PreferredArea(user=user, district=area_data.get('district', None), province=area_data['province'])
             for area_data in preferred_areas_data[num_existing:num_new]
@@ -369,4 +397,3 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
 
         # Bulk create new preferred areas
         PreferredArea.objects.bulk_create(new_areas)
-

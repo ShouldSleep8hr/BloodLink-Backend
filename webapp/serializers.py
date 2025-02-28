@@ -245,10 +245,10 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
                 })
             
         # Check for duplicate district (if district is not None)
-        # if district and PreferredArea.objects.filter(user=8, district=district).exists():
-        #     raise serializers.ValidationError({
-        #         "district": "You have already added this district to your preferred areas."
-        #     })
+        if district and PreferredArea.objects.filter(user=user, district=district).exists():
+            raise serializers.ValidationError({
+                "district": "You have already added this district to your preferred areas."
+            })
 
         return data
     
@@ -259,7 +259,6 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
         - Delete extra ones if the new list is shorter.
         - Create new ones if the new list is longer.
         """
-        user = self.context["request"].user
         existing_areas = list(user.preferred_areas.all())
         num_existing = len(existing_areas)
         num_new = len(preferred_areas_data)

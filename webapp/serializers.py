@@ -98,15 +98,30 @@ class DonationLocationSerializer(serializers.ModelSerializer):
 #         fields = ['id', 'name', 'keyword', 'address', 'contact', 'subdistrict', 'district', 'province', 'latitude', 'longtitude', 'googlemap']
 
 class PostSerializer(serializers.ModelSerializer):
-    user_full_name = serializers.CharField(source='user.full_name', read_only=True) 
-    user_profile_picture = serializers.CharField(source='user.profile_picture', read_only=True) 
+    user_full_name = serializers.CharField(source='user.full_name', read_only=True)
+    user_profile_picture = serializers.CharField(source='user.profile_picture', read_only=True)
 
     class Meta:
         model = Post
-        fields = ['id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 'new_address', 'due_date','contact', 'number_interest', 'number_donor', 'show', 'created_on', 'user_full_name', 'user_profile_picture']
+        fields = [
+            'id', 'recipient_name', 'recipient_blood_type', 'detail', 'user', 'location', 
+            'new_address', 'due_date', 'contact', 'number_interest', 'number_donor', 
+            'show', 'created_on', 'updated_on', 'user_full_name', 'user_profile_picture'
+        ]
+        read_only_fields = ['user', 'number_interest', 'number_donor', 'show', 'created_on', 'updated_on', 'user_full_name', 'user_profile_picture']
 
-    def create(self, validated_data):
+    def validate(self, data):
+        """Ensure required fields are present and validate location/new_address."""
         request_data = self.context['request'].data
+
+        # Required fields check (for create only)
+        if self.instance is None:
+            required_fields = ['recipient_name', 'recipient_blood_type', 'due_date', 'contact']
+            missing_fields = [field for field in required_fields if not request_data.get(field)]
+            if missing_fields:
+                raise serializers.ValidationError({field: "This field is required." for field in missing_fields})
+
+        # Validate 'location' or 'new_address'
         location_id = request_data.get('location')
         new_address = request_data.get('new_address')
 
@@ -114,31 +129,49 @@ class PostSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "location": "Either 'location' or 'new_address' must be provided."
             })
-        
-        # Raise error if both fields are provided
+
         if location_id and new_address:
             raise serializers.ValidationError({
                 "non_field_errors": ["You cannot provide both 'location' and 'new_address' at the same time."]
             })
 
+        return data
+
+    def create(self, validated_data):
+        """Create a post with the validated data."""
+
+        request_data = self.context['request'].data
+        location_id = request_data.get('location')
+        new_address = request_data.get('new_address')
+
         if location_id:
             try:
-                location_instance = DonationLocation.objects.get(id=location_id)
-                validated_data['location'] = location_instance
+                validated_data['location'] = DonationLocation.objects.get(id=location_id)
             except DonationLocation.DoesNotExist:
                 raise serializers.ValidationError({
                     "location": "Location with this ID does not exist."
                 })
-        
-        # Assign new_address if provided
+
         if new_address:
             validated_data['new_address'] = new_address
 
-        # print("Validated Data:", validated_data)
+        return Post.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        """Allow only PATCH requests and remove disallowed fields without raising errors."""
+        request = self.context.get('request')
         
-        # Create the post
-        post = Post.objects.create(**validated_data)
-        return post
+        if request and request.method == "PUT":
+            raise serializers.ValidationError({
+                "detail": "PUT method is not allowed. Use PATCH instead."
+            })
+
+        # Apply updates
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
     
     
 class DonationHistorySerializer(serializers.ModelSerializer):

@@ -25,14 +25,11 @@ class CustomPagination(PageNumberPagination):
 class PreferredAreaViewset(viewsets.ModelViewSet):
     queryset = PreferredArea.objects.all()
     serializer_class = PreferredAreaSerializer
-
-    authentication_classes = [TokenAuthentication]  # Use token authentication
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAdminUser]
 
 class AchievementViewset(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
-
     permission_classes = [permissions.AllowAny]
 
 # class UserAchievementViewset(viewsets.ModelViewSet):
@@ -64,7 +61,6 @@ class EventViewset(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
-    authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]
 
 class EventParticipantViewset(viewsets.ModelViewSet):

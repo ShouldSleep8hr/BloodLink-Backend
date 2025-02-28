@@ -304,7 +304,7 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
         fields = ['id', 'district', 'district_name', 'province', 'province_name']
 
     def validate(self, data):
-        user = data.get('user')
+        # user = data.get('user')
         district = data.get('district', None)
         province = data.get('province')
 
@@ -315,44 +315,58 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
             })
 
         # Check for duplicate district (if district is not None)
-        if district and PreferredArea.objects.filter(user=user, district=district).exists():
-            raise serializers.ValidationError({
-                "district": "You have already added this district to your preferred areas."
-            })
+        # if district and PreferredArea.objects.filter(user=user, district=district).exists():
+        #     raise serializers.ValidationError({
+        #         "district": "You have already added this district to your preferred areas."
+        #     })
 
         return data
 
     def update_preferred_areas(self, user, preferred_areas_data):
         """
         Update the user's preferred areas based on the new data.
-        - Updates existing ones in order.
-        - Deletes extra ones if the new list is shorter.
-        - Creates new ones if the new list is longer.
+        - Allows swapping of districts.
+        - Prevents duplicate districts in the new list.
+        - Efficient bulk update and bulk create.
         """
-        existing_areas = list(user.preferred_areas.all())  # Queryset to list for indexing
-        existing_count = len(existing_areas)
-        new_count = len(preferred_areas_data)
+        existing_areas = list(user.preferred_areas.all())
+        num_existing = len(existing_areas)
+        num_new = len(preferred_areas_data)
 
-        # Step 1: Update existing preferred areas
-        for i in range(min(existing_count, new_count)):
+        # Step 1: Collect districts in the new list to check for duplicates
+        new_districts = set()
+        for area_data in preferred_areas_data:
+            district = area_data.get('district', None)
+            if district:
+                if district.id in new_districts:
+                    raise serializers.ValidationError({
+                        "district": f"The district {district.name} appears more than once."
+                    })
+                new_districts.add(district.id)
+
+        # Step 2: Update existing preferred areas
+        updated_areas = []
+        for i in range(min(num_existing, num_new)):
             area = existing_areas[i]
             area_data = preferred_areas_data[i]
+
             area.district = area_data.get('district', None)
             area.province = area_data['province']
-            area.user = user  # Explicitly set user before updating
+            updated_areas.append(area)
 
-        PreferredArea.objects.bulk_update(existing_areas[:new_count], ["district", "province"])  # Note: `user` is NOT updated here
+        # Bulk update existing areas
+        PreferredArea.objects.bulk_update(updated_areas, ["district", "province"])
 
-        # Step 1.1: Ensure the user field is correctly set (if needed)
-        PreferredArea.objects.filter(id__in=[area.id for area in existing_areas[:new_count]]).update(user=user)
+        # Step 3: Delete extra old areas
+        if num_existing > num_new:
+            PreferredArea.objects.filter(id__in=[area.id for area in existing_areas[num_new:num_existing]]).delete()
 
-        # Step 2: Delete extra areas if the new list is shorter
-        if existing_count > new_count:
-            PreferredArea.objects.filter(id__in=[area.id for area in existing_areas[new_count:]]).delete()
-
-        # Step 3: Create new preferred areas if needed
+        # Step 4: Create new areas
         new_areas = [
             PreferredArea(user=user, district=area_data.get('district', None), province=area_data['province'])
-            for area_data in preferred_areas_data[existing_count:]
+            for area_data in preferred_areas_data[num_existing:num_new]
         ]
+
+        # Bulk create new preferred areas
         PreferredArea.objects.bulk_create(new_areas)
+

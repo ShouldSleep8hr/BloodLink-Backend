@@ -233,7 +233,7 @@ class SharedDonationHistorySerializer(serializers.ModelSerializer):
 #         # fields = ['id', 'districts', 'provinces']
 
 #     def validate(self, data):
-#         # user = self.context["request"].user
+#         user = data.get('user')
 #         district = data.get('district', None)
 #         province = data.get('province')
 
@@ -245,10 +245,10 @@ class SharedDonationHistorySerializer(serializers.ModelSerializer):
 #                 })
             
 #         # Check for duplicate district (if district is not None)
-#         # if district and PreferredArea.objects.filter(user=user, district=district).exists():
-#         #     raise serializers.ValidationError({
-#         #         "district": "You have already added this district to your preferred areas."
-#         #     })
+#         if district and PreferredArea.objects.filter(user=user, district=district).exists():
+#             raise serializers.ValidationError({
+#                 "district": "You have already added this district to your preferred areas."
+#             })
 
 #         return data
     
@@ -278,6 +278,7 @@ class SharedDonationHistorySerializer(serializers.ModelSerializer):
 
 #             area.district = area_data.get('district', None)
 #             area.province = area_data['province']
+#             area.user = user
 #             area.save()
 
 #         # Step 2: Delete remaining old areas if new data has fewer items
@@ -303,11 +304,7 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
         fields = ['id', 'district', 'district_name', 'province', 'province_name']
 
     def validate(self, data):
-        request = self.context.get("request")
-        if not request:
-            raise serializers.ValidationError("Request context is required.")
-        
-        user = request.user
+        user = data.get('user')
         district = data.get('district', None)
         province = data.get('province')
 
@@ -342,8 +339,12 @@ class PreferredAreaSerializer(serializers.ModelSerializer):
             area_data = preferred_areas_data[i]
             area.district = area_data.get('district', None)
             area.province = area_data['province']
+            area.user = user  # Explicitly set user before updating
 
-        PreferredArea.objects.bulk_update(existing_areas[:new_count], ["district", "province"])
+        PreferredArea.objects.bulk_update(existing_areas[:new_count], ["district", "province"])  # Note: `user` is NOT updated here
+
+        # Step 1.1: Ensure the user field is correctly set (if needed)
+        PreferredArea.objects.filter(id__in=[area.id for area in existing_areas[:new_count]]).update(user=user)
 
         # Step 2: Delete extra areas if the new list is shorter
         if existing_count > new_count:

@@ -2,8 +2,8 @@ name: Schedule Task
 
 on:
   schedule:
-    - cron: '*/6 * * * *'  # Runs at 2 AM UTC (which is 9 AM Bangkok time)
-    # - cron: '0 2 * * *'  # Runs at 2 AM UTC (which is 9 AM Bangkok time)
+    # - cron: '*/6 * * * *'  # Runs at 2 AM UTC (which is 9 AM Bangkok time)
+    - cron: '0 2 * * *'  # Runs at 2 AM UTC (which is 9 AM Bangkok time)
 
 jobs:
   build:

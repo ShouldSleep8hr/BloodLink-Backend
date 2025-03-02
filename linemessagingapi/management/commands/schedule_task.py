@@ -7,6 +7,7 @@ from linemessagingapi.views import Webhook
 from linebot.models import TextSendMessage, ButtonsTemplate, TemplateSendMessage, URITemplateAction, FlexSendMessage
 from linemessagingapi.models import LineChannel
 from linebot import LineBotApi
+import os
 
 from django.utils import timezone
 from datetime import timedelta
@@ -15,8 +16,8 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         try:
             # def notify_users_on_post_expired():
-            line_bot = LineChannel.objects.get(id=1)
-            line_bot_api = LineBotApi(line_bot.channel_access_token)
+            # line_bot = LineChannel.objects.get(id=1)
+            line_bot_api = LineBotApi(os.getenv('BOT_CHANNEL_ACCESS_TOKEN'))
 
             now = timezone.now().date()  # Get today's date
             two_days_before = now + timedelta(days=2)
@@ -78,3 +79,59 @@ class Command(BaseCommand):
 
         except Exception as e:
             print(f"Error in notify_upcoming_due_date(): {e}")
+
+        # try:
+        #     line_bot = LineChannel.objects.get(id=1)
+        #     line_bot_api = LineBotApi(line_bot.channel_access_token)
+
+        #     now = timezone.now().date()  # Get today's date
+        #     three_months_ago = now - timedelta(days=90)  # Approximate 3 months
+
+        #     users = Users.objects.filter(
+        #         latest_donation_date__lte=three_months_ago,  # Users who donated 3+ months ago
+        #         line_user_id__isnull=False  # Ensure they have a LINE ID
+        #     )
+
+        #     for user in users:
+        #         last_donation = user.latest_donation_date or "ไม่ระบุวันที่"
+                
+        #         flex_message = {
+        #             "type": "bubble",
+        #             "size": "mega",
+        #             "direction": "ltr",
+        #             "body": {
+        #                 "type": "box",
+        #                 "layout": "vertical",
+        #                 "contents": [
+        #                     {"type": "text", "text": "แจ้งเตือนรอบการบริจาคโลหิต", "weight": "bold"},
+        #                     {"type": "text", "text": "คุณสามารถบริจาคโลหิตได้อีกครั้ง", "margin": "xl"},
+        #                     {"type": "text", "text": f"บริจาคครั้งล่าสุด: {last_donation}"},
+        #                     {"type": "text", "text": "ครบ 3 เดือนแล้ว!", "margin": "xxl"},
+        #                 ]
+        #             },
+        #             "footer": {
+        #                 "type": "box",
+        #                 "layout": "horizontal",
+        #                 "contents": [
+        #                     {
+        #                         "type": "button",
+        #                         "action": {
+        #                             "type": "uri",
+        #                             "label": "ดูจุดรับบริจาคใกล้คุณ",
+        #                             "uri": "https://bloodlink.up.railway.app/donation-locations/"
+        #                         },
+        #                         "color": "#DC0404",
+        #                         "style": "primary"
+        #                     }
+        #                 ]
+        #             }
+        #         }
+
+        #         try:
+        #             message = FlexSendMessage(alt_text="แจ้งเตือนรอบการบริจาคโลหิต", contents=flex_message)
+        #             line_bot_api.push_message(user.line_user_id, message)
+        #         except Exception as e:
+        #             print(f"Error sending message to {user.id}: {e}")
+
+        # except Exception as e:
+        #     print(f"Error in notify_users_for_blood_donation(): {e}")

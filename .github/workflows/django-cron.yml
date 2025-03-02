@@ -16,11 +16,11 @@ jobs:
         run: npm install -g @railway/cli  # Install the Railway CLI to interact with Railway services
 
       - name: Install Python dependencies
-        run: railway run --service {{secrets.SERVICE_ID}} pip install -r requirements.txt
+        run: railway run --service {{ secrets.SERVICE_ID }} pip install -r requirements.txt
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}  # Use your Railway token from GitHub secrets
 
       - name: Schedule Task
-        run: railway run --service {{secrets.SERVICE_ID}} python manage.py schedule_task  # Run your Django management command
+        run: railway run --service {{ secrets.SERVICE_ID }} python manage.py schedule_task  # Run your Django management command
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}  # Use your Railway token from GitHub secrets

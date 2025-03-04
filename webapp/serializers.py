@@ -187,7 +187,7 @@ class DonationHistorySerializer(serializers.ModelSerializer):
             'donor_card_image', 'donor_card_image_url', 'donation_image', 'donation_image_url',
             'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on'
         ]
-        read_only_fields = ['created_on', 'updated_on']
+        read_only_fields = ['user', 'user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on']
 
     # def validate(self, data):
     #     # Validate location name
@@ -203,19 +203,35 @@ class DonationHistorySerializer(serializers.ModelSerializer):
 
     #     return data
     
-    # def update(self, instance, validated_data):
-    #     verify = validated_data['verify']
-    #     share_status = validated_data['share_status']
+    def update(self, instance, validated_data):
+        """
+        When a donation is verified for the first time, grant the user an achievement.
+        """
+        user = instance.user
+        prev_verify_status = instance.verify_status
+        new_verify_status = validated_data.get("verify_status", prev_verify_status)
 
-    #     if verify == True:
-    #         pass
-            
+        instance = super().update(instance, validated_data)  # Perform the update
 
-    #     for field, value in validated_data.items():
-    #         setattr(instance, field, value)
-    #     instance.save()
+        # Check if the status changed from anything to "verified"
+        if prev_verify_status != "verified" and new_verify_status == "verified":
+            # Count the user's verified donations (including this one)
+            verified_count = DonationHistory.objects.filter(user=user, verify_status="verified").count()
 
-    #     return instance
+            # Check and assign achievements based on the count
+            achievements_map = {
+                1: "ผู้บริจาคโลหิตครั้งแรก",
+                5: "ระดับปลาคราฟสีเงิน",
+                10: "ระดับปลาคราฟสีทอง",
+                20: "ระดับปลาคราฟแพทตินัม",
+            }
+
+            if verified_count in achievements_map:
+                achievement_name = achievements_map[verified_count]
+                achievement = Achievement.objects.get(name=achievement_name)
+                UserAchievement.objects.create(user=user, achievement=achievement)
+
+        return instance
 
     def create(self, validated_data):
         # Directly create the donation history record

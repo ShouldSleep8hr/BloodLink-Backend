@@ -1,4 +1,5 @@
 from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant, PreferredArea
+from accounts.models import Users
 from rest_framework import permissions, viewsets, generics, views, mixins
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import PermissionDenied
@@ -274,22 +275,32 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         
         # Select all pending donations to be approved
         donations = DonationHistory.objects.filter(id__in=ids, verify_status="pending")
+        if not donations.exists():
+            return Response({"message": "No pending donations found"}, status=status.HTTP_404_NOT_FOUND)
         updated_count = donations.update(verify_status="verified")
 
+        # Prepare a bulk update for donation points
+        update_donations = []
+        update_users = []
         for donation in donations:
             # Calculate points based on share_status
             if donation.share_status:
-                point_increase = 25  # 20 + 5 for sharing
+                point_increase = 25  # + 5 for sharing
             else:
                 point_increase = 20
 
             # Set donation.donation_point
             donation.donation_point = point_increase
-            donation.save(update_fields=["donation_point"])  # Save only this field
-
-            # Increase user.score
+            update_donations.append(donation)
+            # Increase user score using F() to prevent race conditions
             donation.user.score = F("score") + point_increase
-            donation.user.save(update_fields=["score"])  # Save only this field
+            update_users.append(donation.user)
+
+        # Bulk update donation points
+        DonationHistory.objects.bulk_update(update_donations, ["donation_point"])
+
+        # Bulk update user scores
+        Users.objects.bulk_update(update_users, ["score"])
 
         return Response({"message": f"Approved {updated_count} records"}, status=status.HTTP_200_OK)
 

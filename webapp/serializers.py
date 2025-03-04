@@ -108,7 +108,7 @@ class PostSerializer(serializers.ModelSerializer):
             'new_address', 'due_date', 'contact', 'number_interest', 'number_donor', 
             'show', 'created_on', 'updated_on', 'user_full_name', 'user_profile_picture'
         ]
-        read_only_fields = ['user', 'number_interest', 'number_donor', 'show', 'created_on', 'updated_on', 'user_full_name', 'user_profile_picture']
+        read_only_fields = ['user', 'number_interest', 'number_donor', 'created_on', 'updated_on', 'user_full_name', 'user_profile_picture']
 
     def validate(self, data):
         """Ensure required fields are present and validate location/new_address."""
@@ -121,19 +121,19 @@ class PostSerializer(serializers.ModelSerializer):
             if missing_fields:
                 raise serializers.ValidationError({field: "This field is required." for field in missing_fields})
 
-        # Validate 'location' or 'new_address'
-        location_id = request_data.get('location')
-        new_address = request_data.get('new_address')
+            # Validate 'location' or 'new_address' only when creating a post
+            location_id = request_data.get('location')
+            new_address = request_data.get('new_address')
 
-        if not location_id and not new_address:
-            raise serializers.ValidationError({
-                "location": "Either 'location' or 'new_address' must be provided."
-            })
+            if not location_id and not new_address:
+                raise serializers.ValidationError({
+                    "location": "Either 'location' or 'new_address' must be provided."
+                })
 
-        if location_id and new_address:
-            raise serializers.ValidationError({
-                "non_field_errors": ["You cannot provide both 'location' and 'new_address' at the same time."]
-            })
+            if location_id and new_address:
+                raise serializers.ValidationError({
+                    "non_field_errors": ["You cannot provide both 'location' and 'new_address' at the same time."]
+                })
 
         return data
 
@@ -165,6 +165,11 @@ class PostSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "detail": "PUT method is not allowed. Use PATCH instead."
             })
+        
+        # Prevent updating certain fields
+        disallowed_fields = ['recipient_blood_type', 'location', 'new_address']
+        for field in disallowed_fields:
+            validated_data.pop(field, None)  # Remove it if present
 
         # Apply updates
         for attr, value in validated_data.items():

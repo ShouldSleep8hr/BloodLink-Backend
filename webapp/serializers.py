@@ -187,7 +187,7 @@ class DonationHistorySerializer(serializers.ModelSerializer):
             'donor_card_image', 'donor_card_image_url', 'donation_image', 'donation_image_url',
             'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on'
         ]
-        read_only_fields = ['user', 'user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on']
+        read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'created_on', 'updated_on']
 
     # def validate(self, data):
     #     # Validate location name
@@ -205,7 +205,7 @@ class DonationHistorySerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         """
-        When a donation is verified for the first time, grant the user an achievement.
+        When a donation is verified handle user's achievement.
         """
         user = instance.user
         prev_verify_status = instance.verify_status

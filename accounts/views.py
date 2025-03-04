@@ -74,12 +74,17 @@ class LineLoginView(APIView):
         nonce = secrets.token_urlsafe(16)
 
         # request.session['line_login_state'] = state  # Store state in session
-        # redirect_path = request.query_params.get('redirect')
-        # if not redirect_path:
-        #     redirect_path = '/callback'
+
+        redirect_path = request.query_params.get('redirect')
+        if not redirect_path:
+            redirect_path = '/callback'
+        allowed_paths = ["/callback", "/line/callback/history", "/line/callback/profile"]
+        if redirect_path not in allowed_paths:
+            redirect_path = "/callback"  # Default fallback
+
         # Save nonce in the database linked to a session or user
-        # NonceMapping.objects.create(nonce=nonce, state=state, redirect_path=redirect_path)
-        NonceMapping.objects.create(nonce=nonce, state=state)
+        NonceMapping.objects.create(nonce=nonce, state=state, redirect_path=redirect_path)
+        # NonceMapping.objects.create(nonce=nonce, state=state)
         # NonceMapping.objects.create(nonce=nonce)
 
         line_login_url = (
@@ -154,7 +159,7 @@ class LineLoginCallbackView(APIView):
             # NonceMapping.objects.filter(nonce=nonce).delete()
             if nonce_mapping.nonce != nonce:
                 return Response({"error": "Invalid nonce"}, status=status.HTTP_400_BAD_REQUEST)
-            # redirect_path = nonce_mapping.redirect_path
+            redirect_path = nonce_mapping.redirect_path
             # Delete nonce to prevent reuse
             nonce_mapping.delete()
 
@@ -225,8 +230,8 @@ class LineLoginCallbackView(APIView):
             # response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
             
-            # frontend_url = f"https://kmitldev-blood-link.netlify.app/callback{redirect_path}"
-            frontend_url = f"https://kmitldev-blood-link.netlify.app/callback"
+            frontend_url = f"https://kmitldev-blood-link.netlify.app{redirect_path}"
+            # frontend_url = f"https://kmitldev-blood-link.netlify.app/callback"
             query_params = {"access": access_token, "refresh": str(refresh)}
 
             redirect_url = f"{frontend_url}?{urlencode(query_params)}"

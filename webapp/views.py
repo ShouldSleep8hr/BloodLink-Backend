@@ -15,6 +15,7 @@ from django.dispatch import receiver, Signal
 from django.db.models import Q
 
 import logging
+from django.db.models import F
 
 logger = logging.getLogger(__name__)
 
@@ -271,7 +272,25 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         if not ids:
             return Response({"error": "No IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
         
-        updated_count = DonationHistory.objects.filter(id__in=ids, verify_status="pending").update(verify_status="verified")
+        # Select all pending donations to be approved
+        donations = DonationHistory.objects.filter(id__in=ids, verify_status="pending")
+        updated_count = donations.update(verify_status="verified")
+
+        for donation in donations:
+            # Calculate points based on share_status
+            if donation.share_status:
+                point_increase = 25  # 20 + 5 for sharing
+            else:
+                point_increase = 20
+
+            # Set donation.donation_point
+            donation.donation_point = point_increase
+            donation.save(update_fields=["donation_point"])  # Save only this field
+
+            # Increase user.score
+            donation.user.score = F("score") + point_increase
+            donation.user.save(update_fields=["score"])  # Save only this field
+
         return Response({"message": f"Approved {updated_count} records"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["DELETE"], url_path="delete")

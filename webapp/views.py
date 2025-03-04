@@ -272,37 +272,39 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         ids = request.data.get("ids", [])
         if not ids:
             return Response({"error": "No IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Select all pending donations to be approved
-        donations = DonationHistory.objects.filter(id__in=ids, verify_status="pending")
+
+        # Select all pending donations along with user data to reduce queries
+        donations = DonationHistory.objects.filter(id__in=ids, verify_status="pending").select_related("user")
         if not donations.exists():
             return Response({"message": "No pending donations found"}, status=status.HTTP_404_NOT_FOUND)
-        updated_count = donations.update(verify_status="verified")
 
-        # Prepare a bulk update for donation points
+        updated_count = 0
         update_donations = []
-        update_users = []
-        for donation in donations:
-            # Calculate points based on share_status
-            if donation.share_status:
-                point_increase = 25  # + 5 for sharing
-            else:
-                point_increase = 20
+        user_point_map = {}
 
-            # Set donation.donation_point
+        for donation in donations:
+            # Update verify_status one by one
+            serializer = DonationHistorySerializer(donation, data={"verify_status": "verified"}, partial=True)
+            if serializer.is_valid():
+                serializer.save()  # This will call serializer's update() method
+            updated_count += 1
+
+            # Calculate donation points
+            point_increase = 25 if donation.share_status else 20
             donation.donation_point = point_increase
             update_donations.append(donation)
-            # Increase user score using F() to prevent race conditions
-            donation.user.score = F("score") + point_increase
-            update_users.append(donation.user)
+
+            # Accumulate user points
+            user_point_map[donation.user.id] = user_point_map.get(donation.user.id, 0) + point_increase
 
         # Bulk update donation points
         DonationHistory.objects.bulk_update(update_donations, ["donation_point"])
 
         # Bulk update user scores
-        Users.objects.bulk_update(update_users, ["score"])
+        for user_id, points in user_point_map.items():
+            Users.objects.filter(id=user_id).update(score=F("score") + points)
 
-        return Response({"message": f"Approved {updated_count} records"}, status=status.HTTP_200_OK)
+        return Response({"message": f"Successfully approved {updated_count} donation records"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["DELETE"], url_path="delete")
     def bulk_delete(self, request):

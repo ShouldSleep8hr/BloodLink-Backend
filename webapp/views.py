@@ -273,23 +273,15 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         if not ids:
             return Response({"error": "No IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Select all pending donations along with user data to reduce queries
+        # Select all pending donations along with user data
         donations = DonationHistory.objects.filter(id__in=ids, verify_status="pending").select_related("user")
         if not donations.exists():
             return Response({"message": "No pending donations found"}, status=status.HTTP_404_NOT_FOUND)
 
-        updated_count = 0
         update_donations = []
         user_point_map = {}
 
         for donation in donations:
-            # Update verify_status one by one
-            serializer = DonationHistorySerializer(donation, data={"verify_status": "verified"}, partial=True)
-            if serializer.is_valid():
-                serializer.save()  # This will call serializer's update() method
-                donation.refresh_from_db()  # Refresh instance to reflect DB changes
-            updated_count += 1
-
             # Calculate donation points
             point_increase = 25 if donation.share_status else 20
             donation.donation_point = point_increase
@@ -298,12 +290,20 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             # Accumulate user points
             user_point_map[donation.user.id] = user_point_map.get(donation.user.id, 0) + point_increase
 
-        # Bulk update donation points
+        # First, bulk update donation points
         DonationHistory.objects.bulk_update(update_donations, ["donation_point"])
 
-        # Bulk update user scores
+        # Then, bulk update user scores
         for user_id, points in user_point_map.items():
             Users.objects.filter(id=user_id).update(score=F("score") + points)
+
+        # Finally, update verify_status using the serializer
+        updated_count = 0
+        for donation in donations:
+            serializer = DonationHistorySerializer(donation, data={"verify_status": "verified"}, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated_count += 1
 
         return Response({"message": f"Successfully approved {updated_count} donation records"}, status=status.HTTP_200_OK)
 

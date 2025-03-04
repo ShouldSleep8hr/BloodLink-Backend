@@ -100,7 +100,27 @@ class DonationLocation(models.Model):
 
     def __str__(self):
         return self.name
+
+class Post(models.Model):
+    recipient_name = models.CharField(max_length=50, null=True, blank=False)
+    recipient_blood_type = models.CharField(max_length=10, null=True, blank=True) #example: AB|Rh+
     
+    user = models.ForeignKey(Users, related_name='post', on_delete=models.CASCADE, null=True, blank=False)
+    location = models.ForeignKey(DonationLocation, related_name='post', on_delete=models.SET_NULL, null=True, blank=True)
+    new_address = models.CharField(max_length=255, null=True, blank=True)
+
+    due_date = models.DateTimeField("due date", null=True, blank=True)
+    detail = models.TextField(max_length=200, null=True, blank=True)
+    contact = models.CharField(max_length=200, null=True, blank=True) #might add User.contact, still thinking number or email
+    number_interest = models.IntegerField(default=0)
+    number_donor = models.IntegerField(default=0)
+    show = models.BooleanField(default=True)
+    created_on = models.DateTimeField("date created", default=timezone.now)
+    updated_on = models.DateTimeField("date updated", auto_now=True)
+
+    def __str__(self):
+        return self.recipient_name
+
 class DonationHistory(models.Model):
     user = models.ForeignKey(Users, related_name='donation_histories', on_delete=models.CASCADE)
 
@@ -124,30 +144,14 @@ class DonationHistory(models.Model):
     image_description = models.TextField(blank=True, null=True)
     donation_point = models.PositiveIntegerField(default=0)
     donation_type = models.CharField(max_length=10, choices=donation_type_choice, default="ทั่วไป")
+    # Link to emergency post (nullable for general donations)
+    post = models.ForeignKey(
+        Post, on_delete=models.SET_NULL, null=True, blank=True, related_name="donations"
+    )
     
     verify_status = models.CharField(max_length=10, choices=donation_history_status_choice, default="pending")
     created_on = models.DateTimeField("date created", default=timezone.now)
     updated_on = models.DateTimeField("date updated", auto_now=True)
-
-class Post(models.Model):
-    recipient_name = models.CharField(max_length=50, null=True, blank=False)
-    recipient_blood_type = models.CharField(max_length=10, null=True, blank=True) #example: AB|Rh+
-    
-    user = models.ForeignKey(Users, related_name='post', on_delete=models.CASCADE, null=True, blank=False)
-    location = models.ForeignKey(DonationLocation, related_name='post', on_delete=models.SET_NULL, null=True, blank=True)
-    new_address = models.CharField(max_length=255, null=True, blank=True)
-
-    due_date = models.DateTimeField("due date", null=True, blank=True)
-    detail = models.TextField(max_length=200, null=True, blank=True)
-    contact = models.CharField(max_length=200, null=True, blank=True) #might add User.contact, still thinking number or email
-    number_interest = models.IntegerField(default=0)
-    number_donor = models.IntegerField(default=0)
-    show = models.BooleanField(default=True)
-    created_on = models.DateTimeField("date created", default=timezone.now)
-    updated_on = models.DateTimeField("date updated", auto_now=True)
-
-    def __str__(self):
-        return self.recipient_name
     
 class PreferredArea(models.Model):
     user    = models.ForeignKey(Users, related_name='preferred_areas', on_delete=models.CASCADE, blank=False)

@@ -287,6 +287,7 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = DonationHistorySerializer(donation, data={"verify_status": "verified"}, partial=True)
             if serializer.is_valid():
                 serializer.save()  # This will call serializer's update() method
+                donation.refresh_from_db()  # Refresh instance to reflect DB changes
             updated_count += 1
 
             # Calculate donation points

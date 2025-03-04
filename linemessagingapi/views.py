@@ -23,6 +23,8 @@ from linemessagingapi.services.nearest_location import calculate_haversine_dista
 from jwt import decode, ExpiredSignatureError, InvalidTokenError
 
 import os
+# from rest_framework_simplejwt.tokens import RefreshToken
+# from urllib.parse import urlencode
 
 # from rest_framework.authentication import TokenAuthentication
 
@@ -157,6 +159,8 @@ class Webhook(APIView):
             message_text = event['message']['text']
             if message_text == 'บริจาคโลหิตใกล้ฉัน':
                 self.send_location_request(reply_token)
+            # elif message_text == 'บันทึกการบริจาคโลหิต':
+            #     self.send_saving_donation_with_auth(reply_token, user_id)
 
         elif message_type == 'location':
             # Get user's latitude and longitude
@@ -198,8 +202,9 @@ class Webhook(APIView):
             user = Users.objects.get(line_user_id=user_id)
             display_name = user.line_username
         except ObjectDoesNotExist:
-            # If the user does not exist, you might want to skip or handle differently
-            return HttpResponse(status=204)  # No Content response if user not found
+            # If user does not exist, set user and display_name to None
+            user = None
+            display_name = None
         except Exception as e:
             # Log unexpected errors
             print(f"Unexpected error: {e}")
@@ -207,11 +212,11 @@ class Webhook(APIView):
 
         channel = self.line_bot
 
-        # Create or get LineChannelContact based on the user
-        LineChannelContact.objects.get_or_create(
+        # Update or create LineChannelContact
+        LineChannelContact.objects.update_or_create(
             channel=channel,
             contact_id=user_id,
-            user = user,
+            user = user, # This can now be None
             defaults={'display_name': display_name}
         )
 
@@ -372,6 +377,37 @@ class Webhook(APIView):
             }
         }
         return bubble_template
+    
+    # def send_saving_donation_with_auth(self, reply_token, user_id):
+    #     try:
+    #         user = Users.objects.get(line_user_id=user_id)
+    #     except Users.DoesNotExist:
+    #         print(f"User with line_user_id {user_id} not found.")
+    #         return
+
+    #     refresh = RefreshToken.for_user(user)
+    #     access_token = str(refresh.access_token)
+
+    #     frontend_url = "https://kmitldev-blood-link.netlify.app/line/donation-submission"
+    #     query_params = {"access": access_token, "refresh": str(refresh)}
+
+    #     redirect_url = f"{frontend_url}?{urlencode(query_params)}"
+
+    #     buttons_template = ButtonsTemplate(
+    #         title='บันทึกการบริจาคโลหิต',
+    #         text='กดเพื่อไปหน้าบันทึกการบริจาคโลหิตของคุณ',
+    #         actions=[
+    #             URITemplateAction(
+    #                 label='บันทึกการบริจาคโลหิต',
+    #                 uri=redirect_url
+    #             )
+    #         ]
+    #     )
+    #     template_message = TemplateSendMessage(
+    #         alt_text='บันทึกการบริจาคโลหิต',
+    #         template=buttons_template
+    #     )
+    #     self.line_bot_api.reply_message(reply_token, template_message)
     
     def store_webhook_data(self, request):
         # Extract method, path, headers, and body

@@ -25,6 +25,8 @@ from django.shortcuts import redirect
 import secrets
 from linemessagingapi.models import NonceMapping
 import os
+from rest_framework.decorators import api_view
+from linemessagingapi.models import LineChannelContact
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
@@ -72,8 +74,11 @@ class LineLoginView(APIView):
         nonce = secrets.token_urlsafe(16)
 
         # request.session['line_login_state'] = state  # Store state in session
-        
+        # redirect_path = request.query_params.get('redirect')
+        # if not redirect_path:
+        #     redirect_path = '/callback'
         # Save nonce in the database linked to a session or user
+        # NonceMapping.objects.create(nonce=nonce, state=state, redirect_path=redirect_path)
         NonceMapping.objects.create(nonce=nonce, state=state)
         # NonceMapping.objects.create(nonce=nonce)
 
@@ -149,6 +154,7 @@ class LineLoginCallbackView(APIView):
             # NonceMapping.objects.filter(nonce=nonce).delete()
             if nonce_mapping.nonce != nonce:
                 return Response({"error": "Invalid nonce"}, status=status.HTTP_400_BAD_REQUEST)
+            # redirect_path = nonce_mapping.redirect_path
             # Delete nonce to prevent reuse
             nonce_mapping.delete()
 
@@ -186,6 +192,14 @@ class LineLoginCallbackView(APIView):
                 }
             )
 
+            # Check if LineChannelContact exists before updating
+            user_check_add_line_bot = LineChannelContact.objects.filter(contact_id=line_user_id)
+            if user_check_add_line_bot.exists():
+                user_check_add_line_bot.update(
+                    user=user,
+                    display_name=display_name
+                )
+
             # Generate JWT tokens
             # refresh = RefreshToken.for_user(user)
             # tokens = { 'refresh': str(refresh), 'access': str(refresh.access_token), }
@@ -211,7 +225,8 @@ class LineLoginCallbackView(APIView):
             # response.set_cookie("access_token", access_token, httponly=True, secure=True, samesite="None")
             # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite="None")
             
-            frontend_url = "https://kmitldev-blood-link.netlify.app/callback"
+            # frontend_url = f"https://kmitldev-blood-link.netlify.app/callback{redirect_path}"
+            frontend_url = f"https://kmitldev-blood-link.netlify.app/callback"
             query_params = {"access": access_token, "refresh": str(refresh)}
 
             redirect_url = f"{frontend_url}?{urlencode(query_params)}"

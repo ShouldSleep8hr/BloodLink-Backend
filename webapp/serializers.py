@@ -194,19 +194,13 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'created_on', 'updated_on']
 
-    # def validate(self, data):
-    #     # Validate location name
-    #     location_id = self.context['request'].data.get('location')
-    #     if not location_id:
-    #         raise serializers.ValidationError({"location": "This field is required."})
-
-    #     # Ensure the location exists
-    #     try:
-    #         data['location'] = DonationLocation.objects.get(id=location_id)
-    #     except DonationLocation.DoesNotExist:
-    #         raise serializers.ValidationError({"location": "Location with this name does not exist."})
-
-    #     return data
+    def validate(self, data):
+        """Convert {} to None for all fields that should be nullable"""
+        if data.get("donor_card_image") == {}:
+            data["donor_card_image"] = None
+        if data.get("donation_image") == {}:
+            data["donation_image"] = None
+        return data
     
     def update(self, instance, validated_data):
         """

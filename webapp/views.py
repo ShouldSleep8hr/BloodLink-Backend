@@ -1,5 +1,5 @@
 from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant, PreferredArea
-from rest_framework import permissions, viewsets, generics, views
+from rest_framework import permissions, viewsets, generics, views, mixins
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -79,11 +79,35 @@ class EventParticipantViewset(viewsets.ModelViewSet):
             queryset = queryset.filter(event_id=event_id)
         return queryset
     
-class UserEventParticipantViewset(viewsets.ReadOnlyModelViewSet):
+class UserEventParticipantViewset(mixins.ListModelMixin,  # Allows list
+                                  mixins.CreateModelMixin,  # Allows POST
+                                  viewsets.GenericViewSet):  # No PUT/DELETE
     serializer_class = EventParticipantSerializer
 
     def get_queryset(self):
-        return EventParticipant.objects.filter(user=self.request.user)
+        """Filter queryset to return only the authenticated user's event participation records."""
+        queryset = EventParticipant.objects.filter(user=self.request.user)
+        event_id = self.request.query_params.get('event')
+        if event_id:
+            queryset = queryset.filter(event_id=event_id)
+        return queryset
+    
+    def create(self, request, *args, **kwargs):
+        """Prevent duplicate event participation and assign user."""
+        user = request.user
+        event_id = request.data.get("event")
+
+        # Prevent duplicate participation
+        if EventParticipant.objects.filter(user=user, event_id=event_id).exists():
+            return Response({"detail": "You have already joined this event."}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)  # Explicitly assign the user
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class AnnouncementViewset(viewsets.ModelViewSet):
     queryset = Announcement.objects.all()
@@ -260,7 +284,9 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         deleted_count, _ = DonationHistory.objects.filter(id__in=ids, verify_status="pending").delete()
         return Response({"message": f"Deleted {deleted_count} records"}, status=status.HTTP_204_NO_CONTENT)
     
-class UserDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+class UserDonationHistoryViewSet(mixins.ListModelMixin,  # Allows list
+                                  mixins.CreateModelMixin,  # Allows POST
+                                  viewsets.GenericViewSet):  # No PUT/DELETE
     """ViewSet for users to view and create their donation history."""
     serializer_class = DonationHistorySerializer
 

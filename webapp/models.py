@@ -120,6 +120,14 @@ class Post(models.Model):
 
     def __str__(self):
         return self.recipient_name
+    
+class UserPostInterest(models.Model):
+    user = models.ForeignKey(Users, related_name='interested_posts', on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='interested_users', on_delete=models.CASCADE)
+    created_on = models.DateTimeField("date created", default=timezone.now)
+    
+    def __str__(self):
+        return f'{self.user} is interested in {self.post}'
 
 class DonationHistory(models.Model):
     user = models.ForeignKey(Users, related_name='donation_histories', on_delete=models.CASCADE)

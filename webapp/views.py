@@ -1,4 +1,4 @@
-from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant, PreferredArea
+from webapp.models import DonationLocation, SubDistrict, District, Province, Region, Post, Announcement, DonationHistory, Achievement, UserAchievement, Event, EventParticipant, PreferredArea, UserPostInterest
 from accounts.models import Users
 from rest_framework import permissions, viewsets, generics, views, mixins
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
 
-from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, AnnouncementSerializer, DonationHistorySerializer, AchievementSerializer, UserAchievementSerializer, EventSerializer, EventParticipantSerializer, PreferredAreaSerializer
+from webapp.serializers import DonationLocationSerializer, SubDistrictSerializer, DistrictSerializer, ProvinceSerializer, RegionSerializer, PostSerializer, AnnouncementSerializer, DonationHistorySerializer, AchievementSerializer, UserAchievementSerializer, EventSerializer, EventParticipantSerializer, PreferredAreaSerializer, UserPostInterestSerializer
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
@@ -233,13 +233,30 @@ class UserPostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def interest(self, request, pk=None):
-        """Allow users to press interest a post."""
+        """Allow users to press interest on a post."""
         post = self.get_object()
+        user = self.request.user  # The user who is showing interest
+        
+        # Check if the user has already shown interest in this post
+        if UserPostInterest.objects.filter(user=user, post=post).exists():
+            return Response({"message": "You have already shown interest in this post."}, status=400)
+        
+        # Increment the number of interests on the post
         post.number_interest += 1
         post.save()
+
+        # Create a record in UserPostInterest to track the user's interest
+        UserPostInterest.objects.create(user=user, post=post)
+
         # Send a signal that the post was liked
-        post_interested.send(sender=Post, instance=post, interested_by=request.user)
+        post_interested.send(sender=Post, instance=post, interested_by=user)
         return Response({"message": "Post interest successfully!"}, status=200)
+    
+class UserPostInterestViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = UserPostInterestSerializer
+
+    def get_queryset(self):
+        return UserPostInterest.objects.filter(user=self.request.user).order_by('-created_on')
 
 class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny] 

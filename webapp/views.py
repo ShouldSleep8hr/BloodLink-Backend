@@ -327,11 +327,6 @@ class UserDonationHistoryViewSet(mixins.ListModelMixin,  # Allows list
         return DonationHistory.objects.filter(user=self.request.user)
     
     def create(self, request, *args, **kwargs):
-        for field in ["donor_card_image", "donation_image"]:
-            file = request.FILES.get(field, None)  # Get the file from request.FILES
-            if file and not hasattr(file, "content_type"):  # Invalid file format
-                request.data[field] = None  # Convert to None if it's not a valid file
-        
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)  # Assign the user automatically

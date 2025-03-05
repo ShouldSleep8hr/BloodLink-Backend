@@ -206,6 +206,7 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
         """Allow users to press interest on a post."""
         post = self.get_object()
         user = self.request.user  # The user who is showing interest
+        print(post, user)
         
         # Check if the user is trying to show interest in their own post
         if post.user == user:

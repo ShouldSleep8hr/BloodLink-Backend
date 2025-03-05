@@ -201,8 +201,7 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
 
         return queryset
     
-    @action(detail=True, methods=["post"])
-    @permission_classes([permissions.IsAuthenticated])
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def interest(self, request, pk=None):
         """Allow users to press interest on a post."""
         post = self.get_object()

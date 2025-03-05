@@ -195,18 +195,18 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'created_on', 'updated_on']
     
-    # def validate(self, data):
-    #     # Check donor_card_image file validity
-    #     donor_card_image = data.get('donor_card_image', None)
-    #     if donor_card_image and not isinstance(donor_card_image, File):
-    #         data['donor_card_image'] = None  # Invalid file, set to None
+    def validate(self, data):
+        # Check donor_card_image file validity
+        donor_card_image = data.get('donor_card_image', None)
+        if donor_card_image and not isinstance(donor_card_image, File):
+            data['donor_card_image'] = None  # Invalid file, set to None
 
-    #     # Check donation_image file validity
-    #     donation_image = data.get('donation_image', None)
-    #     if donation_image and not isinstance(donation_image, File):
-    #         data['donation_image'] = None  # Invalid file, set to None
+        # Check donation_image file validity
+        donation_image = data.get('donation_image', None)
+        if donation_image and not isinstance(donation_image, File):
+            data['donation_image'] = None  # Invalid file, set to None
 
-    #     return data
+        return data
 
     def update(self, instance, validated_data):
         """

@@ -237,6 +237,10 @@ class UserPostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = self.request.user  # The user who is showing interest
         
+        # Check if the user is trying to show interest in their own post
+        if post.user == user:
+            return Response({"message": "You cannot show interest in your own post."}, status=400)
+
         # Check if the user has already shown interest in this post
         if UserPostInterest.objects.filter(user=user, post=post).exists():
             return Response({"message": "You have already shown interest in this post."}, status=400)

@@ -45,7 +45,7 @@ router.register(r'webapp/region', RegionViewSet)
 
 router.register(r'webapp/post', PostViewSet)
 router.register(r'user/post',UserPostViewSet, basename='user-post')
-router.register(r'user/post-interest',UserPostViewSet, basename='user-post-interest')
+router.register(r'user/post-interest',UserPostInterestViewSet, basename='user-post-interest')
 
 router.register(r'webapp/achievement', AchievementViewset)
 router.register(r'user/achievement', UserAchievementViewset, basename="user-achievement")

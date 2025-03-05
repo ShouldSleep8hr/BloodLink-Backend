@@ -328,8 +328,9 @@ class UserDonationHistoryViewSet(mixins.ListModelMixin,  # Allows list
     
     def create(self, request, *args, **kwargs):
         for field in ["donor_card_image", "donation_image"]:
-            if request.data.get(field) in [{}, ""]:
-                request.data[field] = None  # Convert to `None`
+            file = request.FILES.get(field, None)  # Get the file from request.FILES
+            if file and not hasattr(file, "content_type"):  # Invalid file format
+                request.data[field] = None  # Convert to None if it's not a valid file
         
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():

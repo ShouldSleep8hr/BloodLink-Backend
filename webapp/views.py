@@ -258,9 +258,13 @@ class UserPostViewSet(viewsets.ModelViewSet):
     
 class UserPostInterestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserPostInterestSerializer
-
+    
     def get_queryset(self):
-        return UserPostInterest.objects.filter(user=self.request.user).order_by('-created_on')
+        queryset = UserPostInterest.objects.filter(user=self.request.user).order_by('-created_on')
+        post_id = self.request.query_params.get('post')
+        if post_id:
+            queryset = queryset.filter(post=post_id)
+        return queryset
 
 class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny] 

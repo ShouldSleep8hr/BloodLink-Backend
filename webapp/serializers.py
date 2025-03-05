@@ -206,6 +206,7 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         if donation_image and not isinstance(donation_image, File):
             data['donation_image'] = None  # Invalid file, set to None
 
+        print(data)
         return data
 
     def update(self, instance, validated_data):

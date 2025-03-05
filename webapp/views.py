@@ -331,6 +331,7 @@ class UserDonationHistoryViewSet(mixins.ListModelMixin,  # Allows list
         if serializer.is_valid():
             serializer.save(user=request.user)  # Assign the user automatically
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # def get_queryset(self):

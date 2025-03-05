@@ -132,7 +132,7 @@ class DonationLocationViewSet(viewsets.ModelViewSet):
         facility_type = self.request.query_params.get('facility_type', None)
         if facility_type:
             queryset = queryset.filter(facility_type=facility_type)
-        return queryset
+        return queryset #send only the one has address and subdistrict
     
 class SubDistrictViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny] 
@@ -236,6 +236,7 @@ class UserPostViewSet(viewsets.ModelViewSet):
         """Allow users to press interest on a post."""
         post = self.get_object()
         user = self.request.user  # The user who is showing interest
+        print(post)
         
         # Check if the user is trying to show interest in their own post
         if post.user == user:
@@ -253,7 +254,7 @@ class UserPostViewSet(viewsets.ModelViewSet):
         UserPostInterest.objects.create(user=user, post=post)
 
         # Send a signal that the post was liked
-        post_interested.send(sender=Post, instance=post, interested_by=user)
+        # post_interested.send(sender=Post, instance=post, interested_by=user)
         return Response({"message": "Post interest successfully!"}, status=200)
     
 class UserPostInterestViewSet(viewsets.ReadOnlyModelViewSet):

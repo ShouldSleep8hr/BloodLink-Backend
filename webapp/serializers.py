@@ -6,7 +6,7 @@ from django.core.files.base import File
 class UserPostInterestSerializer(serializers.ModelSerializer):
     post_name = serializers.CharField(source='post.recipient_name', read_only=True)
     class Meta:
-        model = UserAchievement
+        model = UserPostInterest
         fields = ['id', 'post', 'post_name', 'created_on']
         read_only_fields = ['id', 'created_on']
 

@@ -175,6 +175,7 @@ class RegionViewSet(viewsets.ModelViewSet):
     queryset = Region.objects.all()
     serializer_class = RegionSerializer
 
+post_interested = Signal()
 class PostViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
@@ -199,8 +200,33 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
             return queryset[:int(limit)]
 
         return queryset
+    
+    @action(detail=True, methods=["post"])
+    @permission_classes([permissions.IsAuthenticated])
+    def interest(self, request, pk=None):
+        """Allow users to press interest on a post."""
+        post = self.get_object()
+        user = self.request.user  # The user who is showing interest
+        
+        # Check if the user is trying to show interest in their own post
+        if post.user == user:
+            return Response({"message": "You cannot show interest in your own post."}, status=400)
 
-post_interested = Signal()
+        # Check if the user has already shown interest in this post
+        if UserPostInterest.objects.filter(user=user, post=post).exists():
+            return Response({"message": "You have already shown interest in this post."}, status=400)
+        
+        # Increment the number of interests on the post
+        post.number_interest += 1
+        post.save()
+
+        # Create a record in UserPostInterest to track the user's interest
+        UserPostInterest.objects.create(user=user, post=post)
+
+        # Send a signal that the post was liked
+        # post_interested.send(sender=Post, instance=post, interested_by=user)
+        return Response({"message": "Post interest successfully!"}, status=200)
+
 class UserPostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     pagination_class = CustomPagination
@@ -230,32 +256,6 @@ class UserPostViewSet(viewsets.ModelViewSet):
         if instance.user != self.request.user:
             raise PermissionDenied("You do not have permission to delete this post.")
         instance.delete()
-
-    @action(detail=True, methods=["post"])
-    def interest(self, request, pk=None):
-        """Allow users to press interest on a post."""
-        post = self.get_object()
-        user = self.request.user  # The user who is showing interest
-        print(post)
-        
-        # Check if the user is trying to show interest in their own post
-        if post.user == user:
-            return Response({"message": "You cannot show interest in your own post."}, status=400)
-
-        # Check if the user has already shown interest in this post
-        if UserPostInterest.objects.filter(user=user, post=post).exists():
-            return Response({"message": "You have already shown interest in this post."}, status=400)
-        
-        # Increment the number of interests on the post
-        post.number_interest += 1
-        post.save()
-
-        # Create a record in UserPostInterest to track the user's interest
-        UserPostInterest.objects.create(user=user, post=post)
-
-        # Send a signal that the post was liked
-        # post_interested.send(sender=Post, instance=post, interested_by=user)
-        return Response({"message": "Post interest successfully!"}, status=200)
     
 class UserPostInterestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserPostInterestSerializer

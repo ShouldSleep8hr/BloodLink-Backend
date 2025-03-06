@@ -331,7 +331,7 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         updated_count = 0
         for donation in donations:
             if donation.donation_type == 'ฉุกเฉิน':
-                print(donation)
+                print(donation.post)
                 data = {
                     "verify_status": "verified",
                     "post": donation.post.id
@@ -347,6 +347,8 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
                 # Send a signal that the donation history has been verified
                 donation_verified.send(sender=DonationHistory, instance=donation)
+            else:
+                print("Validation errors:", serializer.errors)
         return Response({"message": f"Successfully approved {updated_count} donation records"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["DELETE"], url_path="delete")

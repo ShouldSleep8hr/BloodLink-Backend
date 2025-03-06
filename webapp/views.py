@@ -331,9 +331,10 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         updated_count = 0
         for donation in donations:
             if donation.donation_type == 'ฉุกเฉิน':
+                print(donation)
                 data = {
                     "verify_status": "verified",
-                    "post": donation.post
+                    "post": donation.post.id
                 }
             else:
                 data = {

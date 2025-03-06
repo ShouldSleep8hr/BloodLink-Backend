@@ -267,6 +267,18 @@ class UserPostInterestViewSet(viewsets.ReadOnlyModelViewSet):
         post_id = self.request.query_params.get('post')
         if post_id:
             queryset = queryset.filter(post=post_id)
+        else:
+            # # Exclude posts that have a verified donation history for the current user
+            # verified_donations = DonationHistory.objects.filter(
+            #     user=self.request.user,
+            #     verify_status='verified',
+            #     donation_type='ฉุกเฉิน'
+            # ).values_list('post', flat=True)  # Get the post IDs where the user has verified donations
+
+            # # Exclude all posts that have been verified in the DonationHistory for the current user
+            # queryset = queryset.exclude(post__id__in=verified_donations)
+            # Exclude posts where 'show' is False
+            queryset = queryset.exclude(post__show=False)
         return queryset
 
 class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):

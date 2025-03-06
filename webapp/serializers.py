@@ -201,7 +201,7 @@ class DonationHistorySerializer(serializers.ModelSerializer):
             'donor_card_image', 'donor_card_image_url', 'donation_image', 'donation_image_url',
             'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on', 'post_location'
         ]
-        read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'created_on', 'updated_on', 'post_location']
+        read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'created_on', 'updated_on', 'post_location']
     
     def get_post_location(self, obj):
         if obj.post:

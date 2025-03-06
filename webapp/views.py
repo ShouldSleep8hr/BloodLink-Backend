@@ -331,12 +331,12 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         updated_count = 0
         for donation in donations:
             serializer = DonationHistorySerializer(donation, data={"verify_status": "verified"}, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                updated_count += 1
+            # if serializer.is_valid():
+            serializer.save()
+            updated_count += 1
 
-                # Send a signal that the donation history has been verified
-                donation_verified.send(sender=DonationHistory, instance=donation)
+            # Send a signal that the donation history has been verified
+            donation_verified.send(sender=DonationHistory, instance=donation)
         return Response({"message": f"Successfully approved {updated_count} donation records"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["DELETE"], url_path="delete")

@@ -463,7 +463,7 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                             {
                                 "type": "text",
                                 "text": "🆘 ด่วน! ขอรับบริจาคโลหิตฉุกเฉิน 🆘",
-                                "weight": "regular",
+                                "weight": "bold",
                                 "align": "start",
                                 "margin": "none",
                                 "contents": []
@@ -533,8 +533,8 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                     "contents": [
                         {
                             "type": "text",
-                            "text": "สร้างโพสต์ขอรับบริจาคโลหิตฉุกเฉินสำเร็จ",
-                            "weight": "regular",
+                            "text": "สร้างโพสต์สำเร็จ",
+                            "weight": "bold",
                             "align": "start",
                             "margin": "none",
                             "contents": []
@@ -597,8 +597,8 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                 "contents": [
                     {
                         "type": "text",
-                        "text": "โพสต์บริจาคโลหิตฉุกเฉินที่คุณกดสนใจ",
-                        "weight": "regular",
+                        "text": "โพสต์ที่คุณกดสนใจ",
+                        "weight": "bold",
                         "align": "start",
                         "margin": "none",
                         "contents": []
@@ -666,7 +666,7 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
                     {
                         "type": "text",
                         "text": "มีผู้บริจาคโลหิตให้โพสต์ของคุณ!",
-                        "weight": "regular",
+                        "weight": "bold",
                         "align": "start",
                         "margin": "none",
                         "contents": []

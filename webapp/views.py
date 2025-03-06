@@ -206,7 +206,6 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
         """Allow users to press interest on a post."""
         post = self.get_object()
         user = self.request.user  # The user who is showing interest
-        print(post, user)
         
         # Check if the user is trying to show interest in their own post
         if post.user == user:
@@ -224,7 +223,7 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
         UserPostInterest.objects.create(user=user, post=post)
 
         # Send a signal that the post was liked
-        # post_interested.send(sender=Post, instance=post, interested_by=user)
+        post_interested.send(sender=Post, instance=post, interested_by=user)
         return Response({"message": "Post interest successfully!"}, status=200)
 
 class UserPostViewSet(viewsets.ModelViewSet):

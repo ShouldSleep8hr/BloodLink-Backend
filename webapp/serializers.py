@@ -219,6 +219,18 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         if donation_image and not isinstance(donation_image, File):
             data['donation_image'] = None  # Invalid file, set to None
 
+        # Ensure location is not null for "ทั่วไป" (General donation)
+        donation_type = data.get('donation_type', "ทั่วไป")  # Default to "ทั่วไป" if not provided
+        location = data.get('location', None)
+        post = data.get('post', None)
+
+        if donation_type == "ทั่วไป" and not location:
+            raise serializers.ValidationError({"location": "Location cannot be null for general donation."})
+
+        # Ensure post is not null for "ฉุกเฉิน" (Emergency donation)
+        if donation_type == "ฉุกเฉิน" and not post:
+            raise serializers.ValidationError({"post": "Post cannot be null for emergency donation."})
+
         return data
 
     def update(self, instance, validated_data):

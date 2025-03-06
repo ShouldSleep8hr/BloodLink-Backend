@@ -267,6 +267,7 @@ class UserPostInterestViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    # for shared donation history
     permission_classes = [permissions.AllowAny] 
     serializer_class = DonationHistorySerializer
     pagination_class = CustomPagination
@@ -275,7 +276,7 @@ class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         return DonationHistory.objects.filter(verify_status='verified', share_status=True).order_by('-created_on')
     
 class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny] # change to admin later
     serializer_class = DonationHistorySerializer
     pagination_class = CustomPagination
 

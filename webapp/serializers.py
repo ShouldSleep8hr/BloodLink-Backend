@@ -191,17 +191,23 @@ class DonationHistorySerializer(serializers.ModelSerializer):
     location_name = serializers.CharField(source='location.name', read_only=True) 
     donor_card_image_url = serializers.SerializerMethodField()
     donation_image_url = serializers.SerializerMethodField()
-    user_full_name = serializers.CharField(source='user.full_name', read_only=True) 
+    user_full_name = serializers.CharField(source='user.full_name', read_only=True)
+    post_location = serializers.SerializerMethodField()
     
     class Meta:
         model = DonationHistory
         fields = [
             'id', 'user', 'user_full_name', 'donation_date', 'location', 'location_name', 'share_status',
             'donor_card_image', 'donor_card_image_url', 'donation_image', 'donation_image_url',
-            'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on'
+            'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on', 'post_location'
         ]
-        read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'created_on', 'updated_on']
+        read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'donation_type', 'created_on', 'updated_on', 'post_location']
     
+    def get_post_location(self, obj):
+        if obj.post:
+            return obj.post.location.name if obj.post.location else obj.post.new_address
+        return None
+
     def validate(self, data):
         # Check donor_card_image file validity
         donor_card_image = data.get('donor_card_image', None)
@@ -213,7 +219,6 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         if donation_image and not isinstance(donation_image, File):
             data['donation_image'] = None  # Invalid file, set to None
 
-        print(data)
         return data
 
     def update(self, instance, validated_data):

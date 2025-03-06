@@ -277,7 +277,8 @@ class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return DonationHistory.objects.filter(verify_status='verified', share_status=True).order_by('-created_on')
-    
+
+donation_verified = Signal()
 class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny] # change to admin later
     serializer_class = DonationHistorySerializer
@@ -334,6 +335,8 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
                 serializer.save()
                 updated_count += 1
 
+                # Send a signal that the donation history has been verified
+                donation_verified.send(sender=DonationHistory, instance=donation)
         return Response({"message": f"Successfully approved {updated_count} donation records"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["DELETE"], url_path="delete")

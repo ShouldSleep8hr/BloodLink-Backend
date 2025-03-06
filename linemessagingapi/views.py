@@ -7,7 +7,7 @@ from linebot.models import TextSendMessage, ButtonsTemplate, TemplateSendMessage
 from linemessagingapi.models import LineChannelContact, LineChannel, WebhookRequest, NonceMapping
 from accounts.models import Users
 from accounts.serializers import UserSerializer
-from webapp.models import DonationLocation, Post
+from webapp.models import DonationLocation, Post, DonationHistory
 from django.db.models import Q
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -16,7 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from webapp.views import post_interested
+from webapp.views import post_interested, donation_verified
 from webapp.serializers import post_donated
 
 from linemessagingapi.services.nearest_location import calculate_haversine_distance
@@ -709,4 +709,75 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
         }
 
         message = FlexSendMessage(alt_text="มีผู้บริจาคโลหิตให้โพสต์ของคุณ", contents=flex_message)
+        webhook.line_bot_api.push_message(instance.user.line_user_id, message)
+
+
+@receiver(donation_verified, sender=DonationHistory)
+def notify_user_on_donation_verification(sender, instance, created, **kwargs):
+    # Initialize Webhook once to reuse it in the loop
+    webhook = Webhook()
+
+    if instance.user.line_user_id:  # Ensure the user has linked their LINE account
+        flex_message = {
+            "type": "bubble",
+            "size": "mega",
+            "direction": "ltr",
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "none",
+                "margin": "none",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": "ตรวจสอบการบริจาคสำเร็จ!",
+                        "weight": "bold",
+                        "align": "start",
+                        "margin": "none",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": f"บริจาคเมื่อวันที่: {instance.donation_date}",
+                        "align": "start",
+                        "gravity": "center",
+                        "margin": "xl",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน",
+                        "align": "start",
+                        "gravity": "center",
+                        "margin": "xl",
+                        "contents": []
+                    },
+                    {
+                        "type": "text",
+                        "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน",
+                        "contents": [],
+                        "wrap": True
+                    }
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "horizontal",
+                "spacing": "none",
+                "contents": [
+                    {
+                        "type": "button",
+                        "action": {
+                            "type": "uri",
+                            "label": "ดูประวัติการบริจาคของคุณ",
+                            "uri": f"https://kmitldev-blood-link.netlify.app/history/"
+                        },
+                        "color": "#DC0404",
+                        "style": "primary"
+                    }
+                ]
+            }
+        }
+        # message = TextSendMessage(text=message_text)
+        message = FlexSendMessage(alt_text="ตรวจสอบการบริจาคสำเร็จ", contents=flex_message)
         webhook.line_bot_api.push_message(instance.user.line_user_id, message)

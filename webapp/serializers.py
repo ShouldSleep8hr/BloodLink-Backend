@@ -199,7 +199,7 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'user_full_name', 'donation_date', 'location', 'location_name', 'share_status',
             'donor_card_image', 'donor_card_image_url', 'donation_image', 'donation_image_url',
-            'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on', 'post_location'
+            'image_description', 'donation_point', 'donation_type', 'verify_status', 'created_on', 'updated_on', 'post', 'post_location'
         ]
         read_only_fields = ['user_full_name', 'location_name','donor_card_image_ur', 'donation_image_url', 'donation_point', 'created_on', 'updated_on', 'post_location']
     

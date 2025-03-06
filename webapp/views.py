@@ -334,6 +334,7 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
                 data = {
                     "donation_type": donation.donation_type,
                     "verify_status": "verified",
+                    "post": donation.post.id
                 }
             else:
                 data = {

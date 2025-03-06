@@ -629,7 +629,7 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
 
 
 @receiver(donation_verified, sender=DonationHistory)
-def notify_user_on_donation_verification(sender, instance, created, **kwargs):
+def notify_user_on_donation_verification(sender, instance, **kwargs):
     # Initialize Webhook once to reuse it in the loop
     webhook = Webhook()
 

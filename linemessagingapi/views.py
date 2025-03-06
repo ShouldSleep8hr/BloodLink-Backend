@@ -582,7 +582,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
     """Notify the user that press interested in post."""
     
     # Ensure the user has linked their LINE account
-    if interested_by.user.line_user_id:
+    if interested_by.line_user_id:
         webhook = Webhook()  # Initialize webhook
 
         flex_message = {
@@ -642,7 +642,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
         }
 
         message = FlexSendMessage(alt_text="โพสต์บริจาคโลหิตฉุกเฉินที่คุณกดสนใจ", contents=flex_message)
-        webhook.line_bot_api.push_message(interested_by.user.line_user_id, message)
+        webhook.line_bot_api.push_message(interested_by.line_user_id, message)
 
 
 @receiver(post_donated, sender=Post)

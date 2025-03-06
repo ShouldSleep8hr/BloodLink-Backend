@@ -457,43 +457,18 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                     "body": {
                         "type": "box",
                         "layout": "vertical",
-                        "spacing": "none",
-                        "margin": "none",
                         "contents": [
-                            {
-                                "type": "text",
-                                "text": "🆘 ด่วน! ขอรับบริจาคโลหิตฉุกเฉิน 🆘",
-                                "weight": "bold",
-                                "align": "start",
-                                "margin": "none",
-                                "contents": []
-                            },
-                            {
-                                "type": "text",
-                                "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}",
-                                "align": "start",
-                                "gravity": "center",
-                                "margin": "xl",
-                                "contents": []
-                            },
-                            {
-                                "type": "text",
-                                "text": f"สถานที่: {instance.location.name}",
-                                "contents": [],
-                                "wrap": True
-                            },
-                            {
-                                "type": "text",
-                                "text": "ขอบคุณที่ร่วมช่วยเหลือ!",
-                                "margin": "xxl",
-                                "contents": []
-                            }
+                            {"type": "text", "text": "🆘 ด่วน! ขอรับบริจาคโลหิตฉุกเฉิน 🆘", "weight": "bold"},
+                            {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
+                            {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
+                            {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
+                            {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}"},
+                            {"type": "text", "text": f"ขอบคุณที่ร่วมช่วยเหลือ!", "margin": "xxl"},
                         ]
                     },
                     "footer": {
                         "type": "box",
                         "layout": "horizontal",
-                        "spacing": "none",
                         "contents": [
                             {
                                 "type": "button",
@@ -508,6 +483,7 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                         ]
                     }
                 }
+                
                 # message = TextSendMessage(text=message_text)
                 message = FlexSendMessage(alt_text="ขอรับบริจาคโลหิต", contents=flex_message)
                 webhook.line_bot_api.push_message(user.line_user_id, message)
@@ -528,37 +504,17 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                 "body": {
                     "type": "box",
                     "layout": "vertical",
-                    "spacing": "none",
-                    "margin": "none",
                     "contents": [
-                        {
-                            "type": "text",
-                            "text": "สร้างโพสต์สำเร็จ",
-                            "weight": "bold",
-                            "align": "start",
-                            "margin": "none",
-                            "contents": []
-                        },
-                        {
-                            "type": "text",
-                            "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}",
-                            "align": "start",
-                            "gravity": "center",
-                            "margin": "xl",
-                            "contents": []
-                        },
-                        {
-                            "type": "text",
-                            "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}",
-                            "contents": [],
-                            "wrap": True
-                        }
+                        {"type": "text", "text": "สร้างโพสต์สำเร็จ", "weight": "bold"},
+                        {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
+                        {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
+                        {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
+                        {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}", "margin": "xxl"},
                     ]
                 },
                 "footer": {
                     "type": "box",
                     "layout": "horizontal",
-                    "spacing": "none",
                     "contents": [
                         {
                             "type": "button",
@@ -573,8 +529,9 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                     ]
                 }
             }
+
             # message = TextSendMessage(text=message_text)
-            message = FlexSendMessage(alt_text="ขอรับบริจาคโลหิต", contents=flex_message)
+            message = FlexSendMessage(alt_text="สร้างโพสต์ขอรับบริจาคโลหิตสำเร็จ", contents=flex_message)
             webhook.line_bot_api.push_message(instance.user.line_user_id, message)
 
 @receiver(post_interested, sender=Post)
@@ -592,47 +549,25 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "none",
-                "margin": "none",
                 "contents": [
-                    {
-                        "type": "text",
-                        "text": "โพสต์ที่คุณกดสนใจ",
-                        "weight": "bold",
-                        "align": "start",
-                        "margin": "none",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}",
-                        "contents": [],
-                        "wrap": True
-                    },
-                    {
-                        "type": "text",
-                        "text": "ขอบคุณที่สนใจร่วมช่วยเหลือ!",
-                        "margin": "xxl",
-                        "contents": []
-                    }
+                    {"type": "text", "text": "โพสต์ที่คุณกดสนใจ", "weight": "bold"},
+                    {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
+                    {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
+                    {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
+                    {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}"},
+                    {"type": "text", "text": f"ขอบคุณที่สนใจร่วมช่วยเหลือ!", "margin": "xxl"},
                 ]
             },
             "footer": {
                 "type": "box",
                 "layout": "horizontal",
-                "spacing": "none",
                 "contents": [
                     {
                         "type": "button",
                         "action": {
                             "type": "uri",
-                            "label": "ดูรายละเอียดโพสต์",
-                            "uri": f"https://kmitldev-blood-link.netlify.app/post/{instance.id}"
+                            "label": "ดูบนแผนที่",
+                            "uri": f"{instance.location.googlemap}"
                         },
                         "color": "#DC0404",
                         "style": "primary"
@@ -640,6 +575,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                 ]
             }
         }
+        
 
         message = FlexSendMessage(alt_text="โพสต์บริจาคโลหิตฉุกเฉินที่คุณกดสนใจ", contents=flex_message)
         webhook.line_bot_api.push_message(interested_by.line_user_id, message)
@@ -660,39 +596,18 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "none",
-                "margin": "none",
                 "contents": [
-                    {
-                        "type": "text",
-                        "text": "มีผู้บริจาคโลหิตให้โพสต์ของคุณ!",
-                        "weight": "bold",
-                        "align": "start",
-                        "margin": "none",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": f"{donated_by.full_name} บริจาคโลหิตโพสต์ของคุณ",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": f"บริจาคให้กับ {instance.recipient_name}",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": "ยินดีด้วยกับความช่วยเหลือ!",
-                        "margin": "xxl",
-                        "contents": []
-                    }
+                    {"type": "text", "text": "มีผู้บริจาคโลหิตให้โพสต์ของคุณ!", "weight": "bold"},
+                    {"type": "text", "text": f"{donated_by.full_name} บริจาคโลหิตโพสต์ของคุณ", "margin": "xl"},
+                    {"type": "text", "text": f"บริจาคให้กับ {instance.recipient_name}"},
+                    {"type": "text", "text": f"มีคนบริจาคให้ทั้งหมด {instance.number_donor} คน"},
+                    {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}"},
+                    {"type": "text", "text": f"ยินดีด้วยกับความช่วยเหลือ!", "margin": "xxl"},
                 ]
             },
             "footer": {
                 "type": "box",
                 "layout": "horizontal",
-                "spacing": "none",
                 "contents": [
                     {
                         "type": "button",
@@ -707,6 +622,7 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
                 ]
             }
         }
+        
 
         message = FlexSendMessage(alt_text="มีผู้บริจาคโลหิตให้โพสต์ของคุณ", contents=flex_message)
         webhook.line_bot_api.push_message(instance.user.line_user_id, message)
@@ -725,52 +641,23 @@ def notify_user_on_donation_verification(sender, instance, created, **kwargs):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "none",
-                "margin": "none",
                 "contents": [
-                    {
-                        "type": "text",
-                        "text": "ตรวจสอบการบริจาคสำเร็จ!",
-                        "weight": "bold",
-                        "align": "start",
-                        "margin": "none",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": f"บริจาคเมื่อวันที่: {instance.donation_date}",
-                        "align": "start",
-                        "gravity": "center",
-                        "margin": "xl",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน",
-                        "align": "start",
-                        "gravity": "center",
-                        "margin": "xl",
-                        "contents": []
-                    },
-                    {
-                        "type": "text",
-                        "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน",
-                        "contents": [],
-                        "wrap": True
-                    }
+                    {"type": "text", "text": "ตรวจสอบการบริจาคสำเร็จ!", "weight": "bold"},
+                    {"type": "text", "text": f"บริจาคเมื่อวันที่: {instance.donation_date}", "margin": "xl"},
+                    {"type": "text", "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน"},
+                    {"type": "text", "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน", "margin": "xxl"},
                 ]
             },
             "footer": {
                 "type": "box",
                 "layout": "horizontal",
-                "spacing": "none",
                 "contents": [
                     {
                         "type": "button",
                         "action": {
                             "type": "uri",
                             "label": "ดูประวัติการบริจาคของคุณ",
-                            "uri": f"https://kmitldev-blood-link.netlify.app/history/"
+                            "uri": f"https://kmitldev-blood-link.netlify.app/history"
                         },
                         "color": "#DC0404",
                         "style": "primary"
@@ -778,6 +665,7 @@ def notify_user_on_donation_verification(sender, instance, created, **kwargs):
                 ]
             }
         }
+        
         # message = TextSendMessage(text=message_text)
         message = FlexSendMessage(alt_text="ตรวจสอบการบริจาคสำเร็จ", contents=flex_message)
         webhook.line_bot_api.push_message(instance.user.line_user_id, message)

@@ -499,7 +499,7 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                                 "action": {
                                     "type": "uri",
                                     "label": "ดูรายละเอียดโพสต์",
-                                    "uri": f"https://bloodlink.up.railway.app/webapp/post/{instance.id}"
+                                    "uri": f"https://kmitldev-blood-link.netlify.app/post/{instance.id}"
                                 },
                                 "color": "#DC0404",
                                 "style": "primary"
@@ -563,8 +563,8 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                             "type": "button",
                             "action": {
                                 "type": "uri",
-                                "label": "ดูรายละเอียดโพสต์",
-                                "uri": f"https://bloodlink.up.railway.app/user/post/{instance.id}"
+                                "label": "ดูโพสต์ทั้งหมดของคุณ",
+                                "uri": f"https://kmitldev-blood-link.netlify.app/profile"
                             },
                             "color": "#DC0404",
                             "style": "primary"
@@ -631,7 +631,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                         "action": {
                             "type": "uri",
                             "label": "ดูรายละเอียดโพสต์",
-                            "uri": f"https://bloodlink.up.railway.app/webapp/post/{instance.id}"
+                            "uri": f"https://kmitldev-blood-link.netlify.app/post/{instance.id}"
                         },
                         "color": "#DC0404",
                         "style": "primary"

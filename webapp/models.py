@@ -133,7 +133,7 @@ class DonationHistory(models.Model):
     user = models.ForeignKey(Users, related_name='donation_histories', on_delete=models.CASCADE)
 
     donation_date = models.DateTimeField("donation date", null=True, blank=True)
-    location = models.ForeignKey(DonationLocation, on_delete=models.CASCADE)
+    location = models.ForeignKey(DonationLocation, on_delete=models.SET_NULL, null=True, blank=True)
     share_status = models.BooleanField(default=False)
     number_like = models.IntegerField(default=0)
     
@@ -154,7 +154,7 @@ class DonationHistory(models.Model):
     donation_type = models.CharField(max_length=10, choices=donation_type_choice, default="ทั่วไป")
     # Link to emergency post (nullable for general donations)
     post = models.ForeignKey(
-        Post, on_delete=models.SET_NULL, null=True, blank=True, related_name="donations"
+        Post, on_delete=models.SET_NULL, null=True, blank=True, related_name="emergency_donation_histories"
     )
     
     verify_status = models.CharField(max_length=10, choices=donation_history_status_choice, default="pending")

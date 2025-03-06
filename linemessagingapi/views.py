@@ -567,7 +567,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                         "action": {
                             "type": "uri",
                             "label": "ดูบนแผนที่",
-                            "uri": f"{instance.location.googlemap}"
+                            "uri": f"{instance.location.googlemap if instance.location and instance.location.googlemap else f'https://kmitldev-blood-link.netlify.app/post/{instance.id}'}"
                         },
                         "color": "#DC0404",
                         "style": "primary"

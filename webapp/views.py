@@ -330,7 +330,16 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         # Finally, update verify_status using the serializer
         updated_count = 0
         for donation in donations:
-            serializer = DonationHistorySerializer(donation, data={"verify_status": "verified"}, partial=True)
+            if donation.donation_type == 'ฉุกเฉิน':
+                data = {
+                    "verify_status": "verified",
+                    "post": donation.post
+                }
+            else:
+                data = {
+                    "verify_status": "verified",
+                }
+            serializer = DonationHistorySerializer(donation, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 updated_count += 1

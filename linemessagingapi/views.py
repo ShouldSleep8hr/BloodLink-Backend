@@ -17,6 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from webapp.views import post_interested
+from webapp.serializers import post_donated
 
 from linemessagingapi.services.nearest_location import calculate_haversine_distance
 
@@ -644,7 +645,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
         webhook.line_bot_api.push_message(interested_by.user.line_user_id, message)
 
 
-# @receiver(post_donation, sender=Post)
+@receiver(post_donated, sender=Post)
 def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
     """Notify the post owner when someone has donated blood in their post."""
     
@@ -697,8 +698,8 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
                         "type": "button",
                         "action": {
                             "type": "uri",
-                            "label": "ดูรายละเอียดโพสต์",
-                            "uri": f"https://bloodlink.up.railway.app/user/post/{instance.id}"
+                            "label": "ดูโพสต์ทั้งหมดของคุณ",
+                            "uri": f"https://kmitldev-blood-link.netlify.app/profile"
                         },
                         "color": "#DC0404",
                         "style": "primary"

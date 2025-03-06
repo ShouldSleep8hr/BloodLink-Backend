@@ -2,6 +2,7 @@ from rest_framework import serializers
 from webapp.models import Post, DonationLocation, SubDistrict, District, Province, Region, Announcement, DonationHistory, PreferredArea, Achievement, UserAchievement, Event, EventParticipant, UserPostInterest
 from django.conf import settings
 from django.core.files.base import File
+from django.dispatch import receiver, Signal
 
 class UserPostInterestSerializer(serializers.ModelSerializer):
     post_name = serializers.CharField(source='post.recipient_name', read_only=True)
@@ -186,7 +187,7 @@ class PostSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-    
+post_donated = Signal()
 class DonationHistorySerializer(serializers.ModelSerializer):
     location_name = serializers.CharField(source='location.name', read_only=True) 
     donor_card_image_url = serializers.SerializerMethodField()
@@ -235,7 +236,7 @@ class DonationHistorySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """
-        When a donation is verified handle user's achievement.
+        When a donation is verified handle user's achievement and add number of donor in post when emergency donation verified.
         """
         user = instance.user
         prev_verify_status = instance.verify_status
@@ -245,6 +246,12 @@ class DonationHistorySerializer(serializers.ModelSerializer):
 
         # Check if the status changed from anything to "verified"
         if prev_verify_status != "verified" and new_verify_status == "verified":
+            if instance.donation_type == "ฉุกเฉิน" and instance.post:
+                instance.post.number_donor += 1
+                instance.post.save(update_fields=["number_donor"])  # Save only the updated field
+                # Send the signal
+                post_donated.send(sender=Post, instance=instance.post, donated_by=instance.user)
+
             # Count the user's verified donations (including this one)
             verified_count = DonationHistory.objects.filter(user=user, verify_status="verified").count()
 

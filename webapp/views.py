@@ -339,6 +339,7 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             else:
                 data = {
                     "verify_status": "verified",
+                    "location": donation.location.id
                 }
             serializer = DonationHistorySerializer(donation, data=data, partial=True)
             if serializer.is_valid():

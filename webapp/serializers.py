@@ -247,12 +247,14 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         # Check if the status changed from anything to "verified"
         if prev_verify_status != "verified" and new_verify_status == "verified":
             if instance.donation_type == "ฉุกเฉิน" and instance.post:
+                print('emergency')
                 # Award an achievement for the first emergency donation
                 first_emergency_donation = not DonationHistory.objects.filter(
                     user=user, donation_type="ฉุกเฉิน", verify_status="verified"
                 ).exclude(id=instance.id).exists()
 
                 if first_emergency_donation:
+                    print('first')
                     achievement_name = "ฮีโร่โลหิตฉุกเฉิน"
                     achievement = Achievement.objects.get(name=achievement_name)
                     UserAchievement.objects.create(user=user, achievement=achievement)

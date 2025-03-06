@@ -119,7 +119,6 @@ class AnnouncementViewset(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
 class DonationLocationViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]  # Use token authentication
     permission_classes = [permissions.AllowAny]  # Allow anyone to access this view
 
     queryset = DonationLocation.objects.all()
@@ -129,10 +128,14 @@ class DonationLocationViewSet(viewsets.ModelViewSet):
     # Optionally, you can override get_queryset() if you need more custom logic
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        # Filter to only include locations that have a subdistrict (not null)
+        queryset = queryset.filter(subdistrict__isnull=False)
+
         facility_type = self.request.query_params.get('facility_type', None)
         if facility_type:
             queryset = queryset.filter(facility_type=facility_type)
-        return queryset #send only the one has address and subdistrict
+        return queryset
     
 class SubDistrictViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny] 

@@ -64,8 +64,8 @@ class Command(BaseCommand):
                                 "type": "button",
                                 "action": {
                                     "type": "uri",
-                                    "label": "ดูรายละเอียดโพสต์",
-                                    "uri": f"https://bloodlink.up.railway.app/user/post/{post.id}"
+                                    "label": "ต่ออายุโพสต์",
+                                    "uri": f"https://kmitldev-blood-link.netlify.app/edit-post/{post.id}"
                                 },
                                 "color": "#DC0404",
                                 "style": "primary"

@@ -461,7 +461,7 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [
-                            {"type": "text", "text": "🆘 ด่วน! ขอรับบริจาคโลหิตฉุกเฉิน 🆘", "weight": "bold", 'wrap': True},
+                            {"type": "text", "text": "🆘ด่วน!ขอรับบริจาคโลหิตฉุกเฉิน🆘", "weight": "bold", 'wrap': True},
                             {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
                             {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
                             {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},

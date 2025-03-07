@@ -553,6 +553,13 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
         # Format the date as "day/month/year" with the full Thai year
         date_only = instance.due_date.strftime(f'%d/%m/{thai_year}')
 
+        if instance.location:
+            googlemap = f"https://maps.google.com/?q={instance.location.name}"
+        elif instance.new_address:
+            googlemap = f"https://maps.google.com/?q={instance.new_address}"
+        else:
+            googlemap = 'https://kmitldev-blood-link.netlify.app'
+
         flex_message = {
             "type": "bubble",
             "size": "mega",
@@ -578,7 +585,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                         "action": {
                             "type": "uri",
                             "label": "ดูบนแผนที่",
-                            "uri": f"https://maps.google.com/?q={instance.location.name}" if instance.location else f"https://maps.google.com/?q={instance.new_address}"
+                            "uri": googlemap
                         },
                         "color": "#DC0404",
                         "style": "primary"

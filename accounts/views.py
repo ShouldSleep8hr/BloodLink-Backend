@@ -78,7 +78,7 @@ class LineLoginView(APIView):
         redirect_path = request.query_params.get('redirect')
         if not redirect_path:
             redirect_path = '/callback'
-        allowed_paths = ["/callback", "/line/callback/history", "/line/callback/profile"]
+        allowed_paths = ["/callback", "/line/callback/history", "/line/callback/profile", '/line/donation-submission', '/profile']
         if redirect_path not in allowed_paths:
             redirect_path = "/callback"  # Default fallback
 

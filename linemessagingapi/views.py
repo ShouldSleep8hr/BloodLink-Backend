@@ -660,7 +660,7 @@ def notify_user_on_donation_verification(sender, instance, **kwargs):
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                    {"type": "text", "text": "ตรวจสอบการบริจาคสำเร็จ!", "weight": "bold", "wrap": True},
+                    {"type": "text", "text": "ยินดีด้วย! บันทึกบริจาคโลหิตของคุณผ่านการตรวจสอบ", "weight": "bold", "wrap": True},
                     {"type": "text", "text": f"บริจาคเมื่อวันที่: {date_only}", "margin": "xl", "wrap": True},
                     {"type": "text", "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน", "wrap": True},
                     {"type": "text", "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน", "margin": "xxl", "wrap": True},
@@ -685,5 +685,5 @@ def notify_user_on_donation_verification(sender, instance, **kwargs):
         }
         
         # message = TextSendMessage(text=message_text)
-        message = FlexSendMessage(alt_text="ตรวจสอบการบริจาคสำเร็จ", contents=flex_message)
+        message = FlexSendMessage(alt_text="บันทึกบริจาคโลหิตของคุณผ่าน", contents=flex_message)
         webhook.line_bot_api.push_message(instance.user.line_user_id, message)

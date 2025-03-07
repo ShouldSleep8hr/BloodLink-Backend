@@ -396,7 +396,7 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [
-                            {"type": "text", "text": "ขออภัย! บันทึกบริจาคโลหิตของคุณถูกปฏิเสธ", "weight": "bold", "wrap": True},
+                            {"type": "text", "text": "ขออภัย! บันทึกบริจาคโลหิตของคุณไม่ผ่านการตรวจสอบ", "weight": "bold", "wrap": True},
                             {"type": "text", "text": f"บริจาคเมื่อวันที่: {date_only}", "margin": "xl", "wrap": True},
                             {"type": "text", "text": "กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง 🙏", "margin": "xxl", "wrap": True},
                         ]
@@ -430,7 +430,7 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
                 line_bot_api = LineBotApi(os.getenv('BOT_CHANNEL_ACCESS_TOKEN'))
                 
                 for line_user_id, flex_message in user_messages:
-                    message = FlexSendMessage(alt_text="บันทึกบริจาคโลหิตของคุณถูกปฏิเสธ", contents=flex_message)
+                    message = FlexSendMessage(alt_text="บันทึกบริจาคโลหิตของคุณไม่ผ่าน", contents=flex_message)
                     line_bot_api.push_message(line_user_id, message)
 
             except Exception as e:

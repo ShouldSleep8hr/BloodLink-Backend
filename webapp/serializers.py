@@ -225,12 +225,16 @@ class DonationHistorySerializer(serializers.ModelSerializer):
         location = data.get('location', None)
         post = data.get('post', None)
 
-        if donation_type == "ทั่วไป" and not location:
-            raise serializers.ValidationError({"location": "Location cannot be null for general donation."})
+        if donation_type == "ทั่วไป":
+            data['post'] = None # general donation no need for post info
+            if not location:
+                raise serializers.ValidationError({"location": "Location cannot be null for general donation."})
 
         # Ensure post is not null for "ฉุกเฉิน" (Emergency donation)
-        if donation_type == "ฉุกเฉิน" and not post:
-            raise serializers.ValidationError({"post": "Post cannot be null for emergency donation."})
+        if donation_type == "ฉุกเฉิน":
+            data['location'] = None # emergency donation no need for location info use post location instead
+            if not post:
+                raise serializers.ValidationError({"post": "Post cannot be null for emergency donation."})
 
         return data
 

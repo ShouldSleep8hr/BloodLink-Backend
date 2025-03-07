@@ -384,6 +384,7 @@ class UserDonationHistoryViewSet(mixins.ListModelMixin,  # Allows list
         return DonationHistory.objects.filter(user=self.request.user)
     
     def create(self, request, *args, **kwargs):
+        print(request.data)
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)  # Assign the user automatically

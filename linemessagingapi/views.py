@@ -462,11 +462,11 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                         "layout": "vertical",
                         "contents": [
                             {"type": "text", "text": "🆘ด่วน!ขอรับบริจาคโลหิตฉุกเฉิน🆘", "weight": "bold", 'wrap': True},
-                            {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
-                            {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
-                            {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
-                            {"type": "text", "text": f"บริจาคได้ถึง: {date_only}"},
-                            {"type": "text", "text": f"ขอบคุณที่ร่วมช่วยเหลือ!", "margin": "xxl"},
+                            {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl", 'wrap': True},
+                            {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}", 'wrap': True},
+                            {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}", 'wrap': True},
+                            {"type": "text", "text": f"บริจาคได้ถึง: {date_only}", 'wrap': True},
+                            {"type": "text", "text": f"ขอบคุณที่ร่วมช่วยเหลือ!", "margin": "xxl", 'wrap': True},
                         ]
                     },
                     "footer": {
@@ -511,11 +511,11 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                     "type": "box",
                     "layout": "vertical",
                     "contents": [
-                        {"type": "text", "text": "สร้างโพสต์สำเร็จ", "weight": "bold"},
-                        {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
-                        {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
-                        {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
-                        {"type": "text", "text": f"บริจาคได้ถึง: {date_only}", "margin": "xxl"},
+                        {"type": "text", "text": "สร้างโพสต์สำเร็จ", "weight": "bold", "wrap": True},
+                        {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl", "wrap": True},
+                        {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}", "wrap": True},
+                        {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}", "wrap": True},
+                        {"type": "text", "text": f"บริจาคได้ถึง: {date_only}", "margin": "xxl", "wrap": True},
                     ]
                 },
                 "footer": {
@@ -560,12 +560,12 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                    {"type": "text", "text": "โพสต์ที่คุณกดสนใจ", "weight": "bold"},
-                    {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
-                    {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
-                    {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
-                    {"type": "text", "text": f"บริจาคได้ถึง: {date_only}"},
-                    {"type": "text", "text": f"ขอบคุณที่สนใจร่วมช่วยเหลือ!", "margin": "xxl"},
+                    {"type": "text", "text": "โพสต์ที่คุณกดสนใจ", "weight": "bold", "wrap": True},
+                    {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl", "wrap": True},
+                    {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}", "wrap": True},
+                    {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}", "wrap": True},
+                    {"type": "text", "text": f"บริจาคได้ถึง: {date_only}", "wrap": True},
+                    {"type": "text", "text": f"ขอบคุณที่สนใจร่วมช่วยเหลือ!", "margin": "xxl", "wrap": True},
                 ]
             },
             "footer": {
@@ -611,12 +611,12 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                    {"type": "text", "text": "มีผู้บริจาคโลหิตให้โพสต์ของคุณ!", "weight": "bold"},
-                    {"type": "text", "text": f"{donated_by.full_name}", "margin": "xl"},
-                    {"type": "text", "text": f"บริจาคให้กับ {instance.recipient_name}"},
-                    {"type": "text", "text": f"มีคนบริจาคให้ทั้งหมด {instance.number_donor} คน"},
-                    {"type": "text", "text": f"บริจาคได้ถึง: {date_only}"},
-                    {"type": "text", "text": f"ยินดีด้วยกับความช่วยเหลือ!", "margin": "xxl"},
+                    {"type": "text", "text": "มีผู้บริจาคโลหิตให้โพสต์ของคุณ!", "weight": "bold", "wrap": True},
+                    {"type": "text", "text": f"{donated_by.full_name}", "margin": "xl", "wrap": True},
+                    {"type": "text", "text": f"บริจาคให้กับ {instance.recipient_name}", "wrap": True},
+                    {"type": "text", "text": f"มีคนบริจาคให้ทั้งหมด {instance.number_donor} คน", "wrap": True},
+                    {"type": "text", "text": f"บริจาคได้ถึง: {date_only}", "wrap": True},
+                    {"type": "text", "text": f"ยินดีด้วยกับความช่วยเหลือ!", "margin": "xxl", "wrap": True},
                 ]
             },
             "footer": {
@@ -659,10 +659,10 @@ def notify_user_on_donation_verification(sender, instance, **kwargs):
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                    {"type": "text", "text": "ตรวจสอบการบริจาคสำเร็จ!", "weight": "bold"},
-                    {"type": "text", "text": f"บริจาคเมื่อวันที่: {date_only}", "margin": "xl"},
-                    {"type": "text", "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน"},
-                    {"type": "text", "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน", "margin": "xxl"},
+                    {"type": "text", "text": "ตรวจสอบการบริจาคสำเร็จ!", "weight": "bold", "wrap": True},
+                    {"type": "text", "text": f"บริจาคเมื่อวันที่: {date_only}", "margin": "xl", "wrap": True},
+                    {"type": "text", "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน", "wrap": True},
+                    {"type": "text", "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน", "margin": "xxl", "wrap": True},
                 ]
             },
             "footer": {

@@ -50,10 +50,10 @@ class Command(BaseCommand):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [
-                            {"type": "text", "text": "แจ้งเตือนหมดอายุโพสต์", "weight": "bold"},
-                            {"type": "text", "text": f"{recipient_name}", "margin": "xl"},
-                            {"type": "text", "text": f"จะหมดภายในวันที่ {date_only}"},
-                            {"type": "text", "text": f"เหลือเวลาอีก {time_notice} วัน", "margin": "xxl"},
+                            {"type": "text", "text": "แจ้งเตือนหมดอายุโพสต์", "weight": "bold", "wrap": True},
+                            {"type": "text", "text": f"{recipient_name}", "margin": "xl", "wrap": True},
+                            {"type": "text", "text": f"จะหมดภายในวันที่ {date_only}", "wrap": True},
+                            {"type": "text", "text": f"เหลือเวลาอีก {time_notice} วัน", "margin": "xxl", "wrap": True},
                         ]
                     },
                     "footer": {
@@ -124,10 +124,10 @@ class Command(BaseCommand):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [
-                            {"type": "text", "text": "แจ้งเตือนรอบการบริจาคโลหิต", "weight": "bold"},
-                            {"type": "text", "text": reminder_text, "margin": "xl"},
-                            {"type": "text", "text": f"บริจาคครั้งล่าสุด: {last_donation}"},
-                            {"type": "text", "text": highlight_text, "margin": "xxl"},
+                            {"type": "text", "text": "แจ้งเตือนรอบการบริจาคโลหิต", "weight": "bold", "wrap": True},
+                            {"type": "text", "text": reminder_text, "margin": "xl", "wrap": True},
+                            {"type": "text", "text": f"บริจาคครั้งล่าสุด: {last_donation}", "wrap": True},
+                            {"type": "text", "text": highlight_text, "margin": "xxl", "wrap": True},
                         ]
                     },
                     "footer": {

@@ -177,7 +177,8 @@ class Webhook(APIView):
                     distance = calculate_haversine_distance(user_lat, user_lon, location.latitude, location.longitude)
                     # If the location is within 10km, add it to the nearby locations list
                     if distance <= 10:
-                        bubble_template = self.create_location_bubble(location.name, distance, location.address, location.googlemap)
+                        googlemap = f'https://maps.google.com/?q={location.name}'
+                        bubble_template = self.create_location_bubble(location.name, distance, location.address, googlemap)
                         nearby_locations.append(bubble_template)
 
             # If there are nearby locations, send them in a single Flex message
@@ -577,7 +578,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                         "action": {
                             "type": "uri",
                             "label": "ดูบนแผนที่",
-                            "uri": f"{instance.location.googlemap if instance.location and instance.location.googlemap else f'https://kmitldev-blood-link.netlify.app/post/{instance.id}'}"
+                            "uri": f"https://maps.google.com/?q={instance.location.name}" if instance.location else f"https://maps.google.com/?q={instance.new_address}"
                         },
                         "color": "#DC0404",
                         "style": "primary"

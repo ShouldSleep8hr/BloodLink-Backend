@@ -22,7 +22,7 @@ from webapp.serializers import post_donated
 from linemessagingapi.services.nearest_location import calculate_haversine_distance
 
 from jwt import decode, ExpiredSignatureError, InvalidTokenError
-
+from datetime import datetime
 import os
 # from rest_framework_simplejwt.tokens import RefreshToken
 # from urllib.parse import urlencode
@@ -450,6 +450,9 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
         # Notify each user via LINE
         for user in users_to_notify:
             if user.line_user_id:  # Ensure the user has linked their LINE account
+                thai_year = instance.due_date.year + 543
+                # Format the date as "day/month/year" with the full Thai year
+                date_only = instance.due_date.strftime(f'%d/%m/{thai_year}')
                 flex_message = {
                     "type": "bubble",
                     "size": "mega",
@@ -462,7 +465,7 @@ def notify_users_on_post_creation(sender, instance, created, **kwargs):
                             {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
                             {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
                             {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
-                            {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}"},
+                            {"type": "text", "text": f"บริจาคได้ถึง: {date_only}"},
                             {"type": "text", "text": f"ขอบคุณที่ร่วมช่วยเหลือ!", "margin": "xxl"},
                         ]
                     },
@@ -497,6 +500,9 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
         webhook = Webhook()
 
         if instance.user.line_user_id:  # Ensure the user has linked their LINE account
+            thai_year = instance.due_date.year + 543
+            # Format the date as "day/month/year" with the full Thai year
+            date_only = instance.due_date.strftime(f'%d/%m/{thai_year}')
             flex_message = {
                 "type": "bubble",
                 "size": "mega",
@@ -509,7 +515,7 @@ def notify_user_on_post_creation(sender, instance, created, **kwargs):
                         {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
                         {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
                         {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
-                        {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}", "margin": "xxl"},
+                        {"type": "text", "text": f"บริจาคได้ถึง: {date_only}", "margin": "xxl"},
                     ]
                 },
                 "footer": {
@@ -542,6 +548,10 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
     if interested_by.line_user_id:
         webhook = Webhook()  # Initialize webhook
 
+        thai_year = instance.due_date.year + 543
+        # Format the date as "day/month/year" with the full Thai year
+        date_only = instance.due_date.strftime(f'%d/%m/{thai_year}')
+
         flex_message = {
             "type": "bubble",
             "size": "mega",
@@ -554,7 +564,7 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
                     {"type": "text", "text": f"{instance.recipient_name}", "margin": "xl"},
                     {"type": "text", "text": f"หมู่เลือดที่ต้องการ: {instance.recipient_blood_type}"},
                     {"type": "text", "text": f"สถานที่: {instance.location.name if instance.location else instance.new_address}"},
-                    {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}"},
+                    {"type": "text", "text": f"บริจาคได้ถึง: {date_only}"},
                     {"type": "text", "text": f"ขอบคุณที่สนใจร่วมช่วยเหลือ!", "margin": "xxl"},
                 ]
             },
@@ -589,6 +599,10 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
     if instance.user.line_user_id:
         webhook = Webhook()  # Initialize webhook
 
+        thai_year = instance.due_date.year + 543
+        # Format the date as "day/month/year" with the full Thai year
+        date_only = instance.due_date.strftime(f'%d/%m/{thai_year}')
+
         flex_message = {
             "type": "bubble",
             "size": "mega",
@@ -598,10 +612,10 @@ def notify_user_on_post_donation(sender, instance, donated_by, **kwargs):
                 "layout": "vertical",
                 "contents": [
                     {"type": "text", "text": "มีผู้บริจาคโลหิตให้โพสต์ของคุณ!", "weight": "bold"},
-                    {"type": "text", "text": f"{donated_by.full_name} บริจาคโลหิตโพสต์ของคุณ", "margin": "xl"},
+                    {"type": "text", "text": f"{donated_by.full_name}", "margin": "xl"},
                     {"type": "text", "text": f"บริจาคให้กับ {instance.recipient_name}"},
                     {"type": "text", "text": f"มีคนบริจาคให้ทั้งหมด {instance.number_donor} คน"},
-                    {"type": "text", "text": f"บริจาคได้ถึง: {instance.due_date}"},
+                    {"type": "text", "text": f"บริจาคได้ถึง: {date_only}"},
                     {"type": "text", "text": f"ยินดีด้วยกับความช่วยเหลือ!", "margin": "xxl"},
                 ]
             },
@@ -634,6 +648,9 @@ def notify_user_on_donation_verification(sender, instance, **kwargs):
     webhook = Webhook()
 
     if instance.user.line_user_id:  # Ensure the user has linked their LINE account
+        thai_year = instance.donation_date.year + 543
+        # Format the date as "day/month/year" with the full Thai year
+        date_only = instance.donation_date.strftime(f'%d/%m/{thai_year}')
         flex_message = {
             "type": "bubble",
             "size": "mega",
@@ -643,7 +660,7 @@ def notify_user_on_donation_verification(sender, instance, **kwargs):
                 "layout": "vertical",
                 "contents": [
                     {"type": "text", "text": "ตรวจสอบการบริจาคสำเร็จ!", "weight": "bold"},
-                    {"type": "text", "text": f"บริจาคเมื่อวันที่: {instance.donation_date}", "margin": "xl"},
+                    {"type": "text", "text": f"บริจาคเมื่อวันที่: {date_only}", "margin": "xl"},
                     {"type": "text", "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน"},
                     {"type": "text", "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน", "margin": "xxl"},
                 ]

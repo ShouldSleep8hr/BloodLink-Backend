@@ -13,6 +13,7 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
+from urllib.parse import quote_plus
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -177,7 +178,11 @@ class Webhook(APIView):
                     distance = calculate_haversine_distance(user_lat, user_lon, location.latitude, location.longitude)
                     # If the location is within 10km, add it to the nearby locations list
                     if distance <= 10:
-                        googlemap = f'https://maps.google.com/?q={location.name}'
+                        # Check and construct the valid URL
+                        if location.name:
+                            googlemap = f"https://maps.google.com/?q={quote_plus(location.name)}"
+                        else:
+                            googlemap = "https://kmitldev-blood-link.netlify.app"
                         bubble_template = self.create_location_bubble(location.name, distance, location.address, googlemap)
                         nearby_locations.append(bubble_template)
 
@@ -553,12 +558,13 @@ def notify_user_post_interested(sender, instance, interested_by, **kwargs):
         # Format the date as "day/month/year" with the full Thai year
         date_only = instance.due_date.strftime(f'%d/%m/{thai_year}')
 
-        if instance.location:
-            googlemap = f"https://maps.google.com/?q={instance.location.name}"
+        # Check and construct the valid URL
+        if instance.location and instance.location.name:
+            googlemap = f"https://maps.google.com/?q={quote_plus(instance.location.name)}"
         elif instance.new_address:
-            googlemap = f"https://maps.google.com/?q={instance.new_address}"
+            googlemap = f"https://maps.google.com/?q={quote_plus(instance.new_address)}"
         else:
-            googlemap = 'https://kmitldev-blood-link.netlify.app'
+            googlemap = "https://kmitldev-blood-link.netlify.app"
 
         flex_message = {
             "type": "bubble",

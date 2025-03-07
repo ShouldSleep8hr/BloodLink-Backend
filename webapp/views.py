@@ -18,6 +18,11 @@ from django.db.models import Q
 import logging
 from django.db.models import F
 
+import os
+from linebot import LineBotApi
+from linebot.models import TextSendMessage, ButtonsTemplate, TemplateSendMessage, URITemplateAction, FlexSendMessage
+from linemessagingapi.models import LineChannelContact, LineChannel, WebhookRequest, NonceMapping
+
 logger = logging.getLogger(__name__)
 
 class CustomPagination(PageNumberPagination):
@@ -366,13 +371,72 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["DELETE"], url_path="delete")
     def bulk_delete(self, request):
-        """Delete multiple pending donation records"""
+        """Delete multiple pending donation records and notify users"""
         ids = request.data.get("ids", [])
         if not ids:
             return Response({"error": "No IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        deleted_count, _ = DonationHistory.objects.filter(id__in=ids, verify_status="pending").delete()
-        return Response({"message": f"Deleted {deleted_count} records"}, status=status.HTTP_204_NO_CONTENT)
+        # Fetch rejected donation records before deletion
+        rejected_donations = DonationHistory.objects.filter(id__in=ids, verify_status="pending")
+
+        # Prepare user notifications
+        user_messages = []
+        for donation in rejected_donations:
+            if donation.user and donation.user.line_user_id:
+                # Format donation date
+                thai_year = donation.donation_date.year + 543  # Convert to พ.ศ.
+                date_only = donation.donation_date.strftime(f'%d/%m/{thai_year}')
+
+                # Create flex message for the user
+                flex_message = {
+                    "type": "bubble",
+                    "size": "mega",
+                    "direction": "ltr",
+                    "body": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {"type": "text", "text": "ขออภัย! บันทึกบริจาคโลหิตของคุณถูกปฏิเสธ", "weight": "bold", "wrap": True},
+                            {"type": "text", "text": f"บริจาคเมื่อวันที่: {date_only}", "margin": "xl", "wrap": True},
+                            {"type": "text", "text": "กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง 🙏", "margin": "xxl", "wrap": True},
+                        ]
+                    },
+                    "footer": {
+                        "type": "box",
+                        "layout": "horizontal",
+                        "contents": [
+                            {
+                                "type": "button",
+                                "action": {
+                                    "type": "uri",
+                                    "label": "ดูประวัติการบริจาคของคุณ",
+                                    "uri": "https://kmitldev-blood-link.netlify.app/history"
+                                },
+                                "color": "#DC0404",
+                                "style": "primary"
+                            }
+                        ]
+                    }
+                }
+
+                user_messages.append((donation.user.line_user_id, flex_message))
+
+        # Delete records
+        deleted_count, _ = rejected_donations.delete()
+
+        # Send LINE multicast notification
+        if user_messages:
+            try:
+                line_bot_api = LineBotApi(os.getenv('BOT_CHANNEL_ACCESS_TOKEN'))
+                
+                for line_user_id, flex_message in user_messages:
+                    message = FlexSendMessage(alt_text="บันทึกบริจาคโลหิตของคุณถูกปฏิเสธ", contents=flex_message)
+                    line_bot_api.push_message(line_user_id, message)
+
+            except Exception as e:
+                print(f"Error sending LINE notifications: {e}")
+
+        return Response({"message": f"Deleted {deleted_count} records and notified {len(user_messages)} users"}, status=status.HTTP_204_NO_CONTENT)
     
 class UserDonationHistoryViewSet(mixins.ListModelMixin,  # Allows list
                                   mixins.CreateModelMixin,  # Allows POST

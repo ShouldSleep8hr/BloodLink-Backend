@@ -30,20 +30,17 @@ from linemessagingapi.models import LineChannelContact
 
 from django.conf import settings
 from storages.backends.gcloud import GoogleCloudStorage
-import uuid
+import hashlib
 
 class GCSMediaStorage(GoogleCloudStorage):
     bucket_name = settings.GS_BUCKET_NAME
     location = ''
 
-def unique_upload_path(instance, filename, folder):
-    """Generate a unique file path inside a given folder."""
-    ext = os.path.splitext(filename)[1]  # Extract file extension
-    unique_filename = f"{uuid.uuid4()}{ext}"  # Generate unique filename
-    return f"{folder}/{unique_filename}"
-
-def profile_upload_path(instance, filename):
-    return unique_upload_path(instance, filename, "profile")
+def obfuscated_filename(user):
+    """Generate a secure and consistent filename for the user's profile picture."""
+    # Hash the user ID (or any other user-specific data) to generate a consistent, secure filename
+    user_hash = hashlib.sha256(str(user.id).encode()).hexdigest()
+    return f"profile/{user_hash}.png"
 
 def build_public_url(file_path):
     """Construct the public URL for accessing the file on GCS."""
@@ -56,13 +53,15 @@ def upload_profile_picture(user, image_url):
     response = requests.get(image_url)
     
     if response.status_code == 200:
-        image_name = os.path.basename(image_url)  # Extract image filename
-        file_path = profile_upload_path(user, image_name)  # Generate unique GCS path
+        # Generate the file path for the user's profile picture
+        file_path = obfuscated_filename(user)
         
         # Use GCSMediaStorage to upload the image to GCS
         gcs_storage = GCSMediaStorage()  # Instantiate custom storage
         with gcs_storage.open(file_path, 'wb') as f:
             f.write(response.content)  # Write image data to GCS
+            # After uploading, ensure that the correct Content-Type is set
+            gcs_storage.bucket.blob(file_path).content_type = 'image/jpeg'  # or 'image/png', depending on the file
         
         # Construct the public URL for the uploaded image
         public_url = build_public_url(file_path)

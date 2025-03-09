@@ -31,7 +31,7 @@ class LineChannelContact(models.Model):
     channel = models.ForeignKey(LineChannel, related_name='line_channel_contacts', on_delete=models.CASCADE)
     contact_id = models.CharField(max_length=50, db_index=True, unique=True)
     user = models.ForeignKey(Users, related_name='line_channel_contacts', on_delete=models.SET_NULL, null=True, blank=True)
-    display_name = models.CharField(blank=True, max_length=50)
+    display_name = models.CharField(blank=True, max_length=50, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 

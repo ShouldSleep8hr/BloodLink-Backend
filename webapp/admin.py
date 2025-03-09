@@ -47,12 +47,16 @@ class SubDistrictAdmin(admin.ModelAdmin):
         return obj.district.province.region.name if obj.district and obj.district.province and obj.district.province.region else '-'
     get_region.short_description = 'Region'
 
+class DonationHistoryAdmin(admin.ModelAdmin):
+    # Specify the fields you want to display in the list view
+    list_display = ('user', 'donation_point')
+
 admin.site.register(Region)
 admin.site.register(Province)
 admin.site.register(District)
 admin.site.register(SubDistrict, SubDistrictAdmin)
 admin.site.register(DonationLocation, DonationLocationAdmin)
-admin.site.register(DonationHistory)
+admin.site.register(DonationHistory, DonationHistoryAdmin)
 admin.site.register(Post)
 admin.site.register(PreferredArea)
 admin.site.register(Announcement)

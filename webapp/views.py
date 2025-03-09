@@ -327,6 +327,7 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
         update_donations = []
         user_point_map = {}
+        user_latest_donation = {}
 
         for donation in donations:
             # Calculate donation points
@@ -337,12 +338,27 @@ class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             # Accumulate user points
             user_point_map[donation.user.id] = user_point_map.get(donation.user.id, 0) + point_increase
 
-        # First, bulk update donation points
+            # Track the latest donation date for each user
+            if donation.donation_date:
+                user_latest_donation[donation.user.id] = max(
+                    user_latest_donation.get(donation.user.id, donation.donation_date),
+                    donation.donation_date
+                )
+
+        # First, bulk update donation points in donation history
         DonationHistory.objects.bulk_update(update_donations, ["donation_point"])
 
-        # Then, bulk update user scores
-        for user_id, points in user_point_map.items():
-            Users.objects.filter(id=user_id).update(score=F("score") + points)
+        # Fetch affected users
+        users = Users.objects.filter(id__in=user_point_map.keys())
+
+        # Update user objects in bulk
+        for user in users:
+            user.score += user_point_map.get(user.id, 0)  # Update score
+            if user.id in user_latest_donation:
+                user.latest_donation_date = user_latest_donation[user.id]  # Update latest donation date
+
+        # Bulk update users
+        Users.objects.bulk_update(users, ["score", "latest_donation_date"])
 
         # Finally, update verify_status using the serializer
         updated_count = 0

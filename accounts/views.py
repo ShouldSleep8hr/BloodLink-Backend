@@ -29,8 +29,48 @@ from rest_framework.decorators import api_view
 from linemessagingapi.models import LineChannelContact
 
 from django.conf import settings
-from google.cloud import storage
+from storages.backends.gcloud import GoogleCloudStorage
 import uuid
+
+class GCSMediaStorage(GoogleCloudStorage):
+    bucket_name = settings.GS_BUCKET_NAME
+    location = ''
+
+def unique_upload_path(instance, filename, folder):
+    """Generate a unique file path inside a given folder."""
+    ext = os.path.splitext(filename)[1]  # Extract file extension
+    unique_filename = f"{uuid.uuid4()}{ext}"  # Generate unique filename
+    return f"{folder}/{unique_filename}"
+
+def profile_upload_path(instance, filename):
+    return unique_upload_path(instance, filename, "profile")
+
+def build_public_url(file_path):
+    """Construct the public URL for accessing the file on GCS."""
+    base_url = f"https://storage.googleapis.com/{settings.GS_BUCKET_NAME}/"
+    return f"{base_url}{file_path}"
+
+def upload_profile_picture(user, image_url):
+    """Download and upload profile picture to GCS, then update user's profile."""
+    # Get image data from URL
+    response = requests.get(image_url)
+    
+    if response.status_code == 200:
+        image_name = os.path.basename(image_url)  # Extract image filename
+        file_path = profile_upload_path(user, image_name)  # Generate unique GCS path
+        
+        # Use GCSMediaStorage to upload the image to GCS
+        gcs_storage = GCSMediaStorage()  # Instantiate custom storage
+        with gcs_storage.open(file_path, 'wb') as f:
+            f.write(response.content)  # Write image data to GCS
+        
+        # Construct the public URL for the uploaded image
+        public_url = build_public_url(file_path)
+        
+        # Update the user's profile_picture field with the public URL
+        user.profile_picture = public_url
+        user.save()
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
@@ -103,21 +143,6 @@ class LineLoginView(APIView):
         )
         
         return redirect(line_login_url)
-
-def upload_image_to_gcs(image_content, folder="profile"):
-    """Upload image content to GCS and return the public URL."""
-    client = storage.Client()
-    bucket = client.bucket(settings.GS_BUCKET_NAME)
-
-    # Generate a unique filename
-    filename = f"{folder}/{uuid.uuid4()}.jpg"
-    
-    # Upload image to GCS
-    blob = bucket.blob(filename)
-    blob.upload_from_string(image_content, content_type="image/jpeg")
-    blob.make_public()  # Make the file publicly accessible
-
-    return blob.public_url  # Return the public URL
 
 class LineLoginCallbackView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -215,13 +240,9 @@ class LineLoginCallbackView(APIView):
                     # 'profile_picture': picture_url,  # Refresh profile picture every login
                 }
             )
-            # If the user has a new profile picture, download and upload it
+            # Only upload new profile picture if the user has a new image URL
             if picture_url:
-                response = requests.get(picture_url)
-                if response.status_code == 200:
-                    public_url = upload_image_to_gcs(response.content)  # Upload and get URL
-                    user.profile_picture = public_url
-                    user.save()
+                upload_profile_picture(user, image_url=picture_url)
 
             # Check if LineChannelContact exists before updating
             user_check_add_line_bot = LineChannelContact.objects.filter(contact_id=line_user_id)

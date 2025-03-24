@@ -81,7 +81,7 @@ class UserRankingView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
-        top_users = Users.objects.order_by('-score')[:5]  # Get top 5 users sorted by score
+        top_users = Users.objects.order_by('-score', 'id')[:5]  # Get top 5 users sorted by score
         serializer = UserRankingSerializer(top_users, many=True)
         return Response(serializer.data)
 

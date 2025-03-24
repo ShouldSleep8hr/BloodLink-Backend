@@ -58,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     def get_rank(self, obj):
         """Assign rank based on ordering"""
-        sorted_users = Users.objects.order_by('-score')
+        sorted_users = Users.objects.order_by('-score', 'id')
         rank_dict = {user.id: rank + 1 for rank, user in enumerate(sorted_users)}
         return rank_dict.get(obj.id, None)  # Return the rank
     

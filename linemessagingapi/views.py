@@ -665,6 +665,7 @@ def notify_user_on_donation_verification(sender, instance, **kwargs):
         thai_year = instance.donation_date.year + 543
         # Format the date as "day/month/year" with the full Thai year
         date_only = instance.donation_date.strftime(f'%d/%m/{thai_year}')
+        user_score = instance.user.score + instance.donation_point
         flex_message = {
             "type": "bubble",
             "size": "mega",
@@ -676,7 +677,7 @@ def notify_user_on_donation_verification(sender, instance, **kwargs):
                     {"type": "text", "text": "ยินดีด้วย! บันทึกบริจาคโลหิตของคุณผ่านการตรวจสอบ", "weight": "bold", "wrap": True},
                     {"type": "text", "text": f"บริจาคเมื่อวันที่: {date_only}", "margin": "xl", "wrap": True},
                     {"type": "text", "text": f"ได้รับคะแนน: {instance.donation_point} คะแนน", "wrap": True},
-                    {"type": "text", "text": f"คุณมีคะแนนรวม {instance.user.score} คะแนน", "margin": "xxl", "wrap": True},
+                    {"type": "text", "text": f"คุณมีคะแนนรวม {user_score} คะแนน", "margin": "xxl", "wrap": True},
                 ]
             },
             "footer": {

@@ -297,7 +297,8 @@ class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 donation_verified = Signal()
 class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [permissions.IsAdminUser]
+    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.AllowAny]
     serializer_class = DonationHistorySerializer
     pagination_class = CustomPagination
 

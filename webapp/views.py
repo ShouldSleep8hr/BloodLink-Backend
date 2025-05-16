@@ -195,11 +195,6 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
         now = timezone.now()
         # Use `update()` only if there are posts to update (avoids unnecessary DB queries)
         Post.objects.filter(due_date__lt=now, show=True).update(show=False)
-        # expired_posts = Post.objects.filter(due_date__lt=now, show=True)
-        # if expired_posts.exists():
-        #     expired_posts.update(show=False)
-
-        # Filter posts that are still `show=True`
         queryset = super().get_queryset()  # Uses the `queryset` defined above
 
         # Apply the `limit` parameter if present
@@ -273,16 +268,6 @@ class UserPostInterestViewSet(viewsets.ReadOnlyModelViewSet):
         if post_id:
             queryset = queryset.filter(post=post_id)
         else:
-            # # Exclude posts that have a verified donation history for the current user
-            # verified_donations = DonationHistory.objects.filter(
-            #     user=self.request.user,
-            #     verify_status='verified',
-            #     donation_type='ฉุกเฉิน'
-            # ).values_list('post', flat=True)  # Get the post IDs where the user has verified donations
-
-            # # Exclude all posts that have been verified in the DonationHistory for the current user
-            # queryset = queryset.exclude(post__id__in=verified_donations)
-            # Exclude posts where 'show' is False
             queryset = queryset.exclude(post__show=False)
         return queryset
 
@@ -297,8 +282,7 @@ class DonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 donation_verified = Signal()
 class VerifyDonationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    # permission_classes = [permissions.IsAdminUser]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAdminUser]
     serializer_class = DonationHistorySerializer
     pagination_class = CustomPagination
 

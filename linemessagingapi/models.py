@@ -51,7 +51,7 @@ def generate_state():
 class NonceMapping(models.Model):
     nonce = models.CharField(max_length=255, unique=True, default=generate_nonce)
     state = models.CharField(max_length=255, unique=True, default=generate_state)
-    redirect_path = models.CharField(max_length=255, blank=True, default='/callback')
+    redirect_path = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
